@@ -9,11 +9,14 @@ import android.graphics.Canvas
 import android.graphics.Paint
 import android.graphics.Color
 import android.graphics.RectF
+import android.graphics.Path
 import android.content.Context
+import kotlin.math.abs
 import kotlin.math.max
 import kotlin.math.min
 
 class MainActivity : Activity() {
+    @Suppress("DEPRECATION")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
@@ -27,6 +30,7 @@ class MainActivity : Activity() {
 }
 
 private class GameView(context: Context) : View(context) {
+
     private val p = Paint(Paint.ANTI_ALIAS_FLAG)
 
     private var x = 120f
@@ -37,60 +41,168 @@ private class GameView(context: Context) : View(context) {
     private var bossX = 700f
     private var world = 0f
     private var facing = 1f
+
     private var light = true
     private var left = false
     private var right = false
     private var grounded = true
     private var attack = false
     private var won = false
+    private var lost = false
 
-    private val scale get() = width / 960f
-    private val ground get() = height * 0.78f
+    private var invulnerability = 0
+    private var bossAttackTimer = 0
+    private var attackFlash = 0
+
+    private val scale: Float
+        get() = width / 960f
+
+    private val ground: Float
+        get() = height * 0.78f
+
+    private fun platformX(i: Int) = 220f + i * 210f
+
+    private fun overlapsPlatform(i: Int): Boolean {
+        val start = platformX(i)
+        return x + 15f > start && x - 15f < start + 100f
+    }
+
+    private fun standingOnPlatform(): Boolean {
+        if (jumpY >= 0f) return false
+
+        for (i in 0..7) {
+            if (overlapsPlatform(i)) return true
+        }
+        return false
+    }
 
     override fun onDraw(c: Canvas) {
         super.onDraw(c)
+
         updateGame()
         drawGame(c)
+
         postInvalidateDelayed(16)
     }
 
+    private fun resetGame() {
+        x = 120f
+        jumpY = 0f
+        velocity = 0f
+        health = 5
+        bossHealth = 10
+        bossX = 700f
+        world = 0f
+        facing = 1f
+        light = true
+        grounded = true
+        attack = false
+        won = false
+        lost = false
+        invulnerability = 0
+        bossAttackTimer = 0
+        attackFlash = 0
+    }
+
     private fun updateGame() {
-        if (won || width == 0) return
+        if (width == 0 || won || lost) return
+
+        if (invulnerability > 0) invulnerability--
+        if (attackFlash > 0) attackFlash--
 
         if (left) {
             x -= 4f
             facing = -1f
         }
+
         if (right) {
             x += 4f
             facing = 1f
         }
 
-        x = max(25f, min(1800f, x))
+        x = x.coerceIn(20f, 1800f)
 
-        velocity += 0.65f
-        jumpY += velocity
-
-        if (jumpY >= 0f) {
-            jumpY = 0f
-            velocity = 0f
-            grounded = true
+        // Si abandonas una plataforma, empiezas a caer.
+        if (grounded && jumpY < 0f && !standingOnPlatform()) {
+            grounded = false
         }
 
-        world = (x - 300f).coerceIn(0f, 900f)
+        val previousY = jumpY
 
-        if (attack) {
-            attack = false
-            if (kotlin.math.abs(x - bossX) < 125f) {
-                bossHealth--
-                if (bossHealth <= 0) won = true
+        if (!grounded) {
+            velocity += 0.58f
+            jumpY += velocity
+
+            // Aterrizaje sobre las plataformas.
+            if (velocity > 0f) {
+                for (i in 0..7) {
+                    val platformTop = -100f
+
+                    if (
+                        previousY <= platformTop &&
+                        jumpY >= platformTop &&
+                        overlapsPlatform(i)
+                    ) {
+                        jumpY = platformTop
+                        velocity = 0f
+                        grounded = true
+                        break
+                    }
+                }
+            }
+
+            // Suelo principal.
+            if (jumpY >= 0f) {
+                jumpY = 0f
+                velocity = 0f
+                grounded = true
             }
         }
 
-        if (kotlin.math.abs(x - bossX) < 65f &&
-            jumpY == 0f && bossHealth > 0) {
-            // El jefe amenaza al jugador al acercarse.
-            // El ataque del jugador se controla desde el botón.
+        // Cámara lateral.
+        world = (x - 300f).coerceIn(0f, 900f)
+
+        // Ataque del protagonista.
+        if (attack) {
+            attack = false
+            attackFlash = 8
+
+            val distance = bossX - x
+            val facingBoss = distance * facing > 0f
+
+            if (
+                bossHealth > 0 &&
+                abs(distance) < 115f &&
+                facingBoss
+            ) {
+                bossHealth--
+
+                if (bossHealth <= 0) {
+                    bossHealth = 0
+                    won = true
+                }
+            }
+        }
+
+        // El Guardián golpea si te acercas demasiado.
+        if (bossHealth > 0 && abs(x - bossX) < 95f) {
+            bossAttackTimer++
+
+            if (bossAttackTimer >= 75) {
+                bossAttackTimer = 0
+
+                if (invulnerability == 0) {
+                    health--
+                    invulnerability = 65
+
+                    if (health <= 0) {
+                        health = 0
+                        lost = true
+                    }
+                }
+            }
+        } else {
+            bossAttackTimer = 0
         }
     }
 
@@ -104,115 +216,236 @@ private class GameView(context: Context) : View(context) {
             else Color.rgb(43, 17, 53)
         )
 
-        // Fondo y montañas
+        // Estrellas.
+        p.color = Color.rgb(190, 210, 255)
+
+        for (i in 0..35) {
+            val sx = ((i * 137f - world * 0.12f) %
+                (w + 30f)).let { if (it < 0f) it + w + 30f else it }
+
+            val sy = (i * 47f % (h * 0.60f))
+            c.drawCircle(sx, sy, 1.5f * s, p)
+        }
+
+        // Montañas del fondo.
         p.color = Color.rgb(42, 51, 83)
-        for (i in 0..7) {
-            val bx = i * 170f * s - (world * s * 0.2f % (170f * s))
-            val path = android.graphics.Path()
+
+        for (i in 0..9) {
+            val bx = i * 170f * s -
+                (world * s * 0.2f % (170f * s))
+
+            val path = Path()
             path.moveTo(bx, ground - 20f * s)
             path.lineTo(bx + 85f * s, h * 0.25f)
             path.lineTo(bx + 170f * s, ground - 20f * s)
             path.close()
+
             c.drawPath(path, p)
         }
 
-        // Suelo
+        // Suelo.
         p.color = Color.rgb(43, 61, 67)
         c.drawRect(0f, ground, w, h, p)
+
         p.color = Color.rgb(93, 200, 165)
         c.drawRect(0f, ground, w, ground + 6f * s, p)
 
-        // Plataformas
-        p.color = Color.rgb(80, 105, 117)
+        // Plataformas sólidas.
         for (i in 0..7) {
-            val px = (220f + i * 210f - world) * s
+            val px = (platformX(i) - world) * s
+            val py = ground - 100f * s
+
             if (px > -130f * s && px < w) {
+                p.color = Color.rgb(80, 105, 117)
+                c.drawRoundRect(
+                    px, py,
+                    px + 100f * s, py + 15f * s,
+                    3f * s, 3f * s, p
+                )
+
+                p.color = Color.rgb(93, 200, 165)
                 c.drawRect(
-                    px, ground - 100f * s,
-                    px + 100f * s, ground - 85f * s, p
+                    px, py,
+                    px + 100f * s, py + 3f * s, p
                 )
             }
         }
 
-        // Cristales
+        // Cristales del mundo.
         p.color = if (light) Color.CYAN else Color.MAGENTA
+
         for (i in 0..9) {
             val cx = (100f + i * 190f - world) * s
+
             if (cx in 0f..w) {
-                c.drawCircle(cx, ground - 35f * s, 5f * s, p)
+                val cy = ground - 35f * s
+
+                val crystal = Path()
+                crystal.moveTo(cx, cy - 8f * s)
+                crystal.lineTo(cx + 5f * s, cy)
+                crystal.lineTo(cx, cy + 8f * s)
+                crystal.lineTo(cx - 5f * s, cy)
+                crystal.close()
+
+                c.drawPath(crystal, p)
             }
         }
 
-        // Personaje
+        // Personaje.
         val px = (x - world) * s
         val py = ground + jumpY * s
 
-        p.color = if (light) Color.rgb(91, 211, 255)
-                  else Color.rgb(212, 111, 255)
-        c.drawRoundRect(
-            px - 15f * s, py - 48f * s,
-            px + 15f * s, py, 7f * s, 7f * s, p
-        )
+        if (invulnerability % 8 < 5 || invulnerability == 0) {
+            p.color = if (light) {
+                Color.rgb(91, 211, 255)
+            } else {
+                Color.rgb(212, 111, 255)
+            }
 
-        p.color = Color.WHITE
-        c.drawCircle(
-            px + facing * 6f * s,
-            py - 36f * s, 3f * s, p
-        )
+            c.drawRoundRect(
+                px - 15f * s, py - 48f * s,
+                px + 15f * s, py,
+                7f * s, 7f * s, p
+            )
 
-        // Guardián
+            // Ojos.
+            p.color = Color.WHITE
+            c.drawCircle(
+                px + facing * 6f * s,
+                py - 36f * s,
+                3f * s, p
+            )
+
+            // Espada al atacar.
+            if (attackFlash > 0) {
+                p.color = Color.rgb(255, 245, 170)
+
+                val swordX = px + facing * 30f * s
+                c.drawRoundRect(
+                    min(px, swordX),
+                    py - 35f * s,
+                    max(px, swordX) + 5f * s,
+                    py - 29f * s,
+                    2f * s, 2f * s, p
+                )
+            }
+        }
+
+        // Guardián.
         if (bossHealth > 0) {
             val bx = (bossX - world) * s
+
             p.color = Color.rgb(111, 55, 132)
             c.drawRoundRect(
                 bx - 32f * s, ground - 90f * s,
                 bx + 32f * s, ground,
                 14f * s, 14f * s, p
             )
+
             p.color = Color.rgb(255, 74, 130)
-            c.drawCircle(bx - 10f * s, ground - 65f * s, 4f * s, p)
-            c.drawCircle(bx + 10f * s, ground - 65f * s, 4f * s, p)
+            c.drawCircle(
+                bx - 10f * s, ground - 65f * s,
+                4f * s, p
+            )
+            c.drawCircle(
+                bx + 10f * s, ground - 65f * s,
+                4f * s, p
+            )
+
+            // Barra de vida del jefe.
+            val barLeft = w - 190f * s
+            val barTop = 20f * s
+            val barWidth = 170f * s
 
             p.color = Color.DKGRAY
-            c.drawRect(w - 190f * s, 20f * s, w - 20f * s, 33f * s, p)
+            c.drawRoundRect(
+                barLeft, barTop,
+                barLeft + barWidth, barTop + 13f * s,
+                3f * s, 3f * s, p
+            )
+
             p.color = Color.RED
-            c.drawRect(
-                w - 190f * s, 20f * s,
-                w - (20f + 170f * (10 - bossHealth) / 10f) * s,
-                33f * s, p
+            c.drawRoundRect(
+                barLeft, barTop,
+                barLeft + barWidth * bossHealth / 10f,
+                barTop + 13f * s,
+                3f * s, 3f * s, p
             )
         }
 
-        // Interfaz
+        // Interfaz.
         p.color = Color.WHITE
         p.textSize = 16f * s
+
         c.drawText("ECOS DEL EQUILIBRIO", 16f * s, 25f * s, p)
-        c.drawText("VIDA: $health", 16f * s, 48f * s, p)
+        c.drawText("VIDA: $health / 5", 16f * s, 48f * s, p)
+
         c.drawText(
             if (light) "PODER: LUZ" else "PODER: OSCURIDAD",
             16f * s, 70f * s, p
         )
 
-        button(c, RectF(15f*s, h-85f*s, 85f*s, h-15f*s), "IZQ")
-        button(c, RectF(95f*s, h-85f*s, 165f*s, h-15f*s), "DER")
-        button(c, RectF(w-190f*s, h-85f*s, w-115f*s, h-15f*s), "SALTO")
-        button(c, RectF(w-105f*s, h-85f*s, w-15f*s, h-15f*s), "ATACA")
-        button(c, RectF(w-175f*s, 45f*s, w-15f*s, 85f*s), "LUZ / OSC.")
+        button(
+            c, RectF(15f*s, h-85f*s, 85f*s, h-15f*s), "IZQ"
+        )
+        button(
+            c, RectF(95f*s, h-85f*s, 165f*s, h-15f*s), "DER"
+        )
+        button(
+            c, RectF(w-190f*s, h-85f*s, w-115f*s, h-15f*s), "SALTO"
+        )
+        button(
+            c, RectF(w-105f*s, h-85f*s, w-15f*s, h-15f*s), "ATACA"
+        )
+        button(
+            c, RectF(w-175f*s, 45f*s, w-15f*s, 85f*s), "LUZ / OSC."
+        )
 
-        if (won) {
+        // Mensajes finales.
+        if (won || lost) {
+            p.color = Color.argb(220, 8, 12, 25)
+            c.drawRect(0f, 0f, w, h, p)
+
+            p.color = if (won) {
+                Color.rgb(100, 255, 190)
+            } else {
+                Color.rgb(255, 100, 120)
+            }
+
+            p.textAlign = Paint.Align.CENTER
+            p.textSize = 29f * s
+
+            c.drawText(
+                if (won) "¡GUARDIÁN DERROTADO!" else "HAS CAÍDO",
+                w / 2f, h * 0.43f, p
+            )
+
             p.color = Color.WHITE
-            p.textSize = 30f * s
-            c.drawText("¡GUARDIÁN DERROTADO!", w * 0.25f, h * 0.45f, p)
+            p.textSize = 17f * s
+            c.drawText(
+                "TOCA PARA VOLVER A JUGAR",
+                w / 2f, h * 0.53f, p
+            )
+
+            p.textAlign = Paint.Align.LEFT
         }
     }
 
     private fun button(c: Canvas, r: RectF, label: String) {
         p.color = Color.argb(190, 22, 36, 55)
         c.drawRoundRect(r, 10f * scale, 10f * scale, p)
+
         p.color = Color.WHITE
         p.textSize = 11f * scale
         p.textAlign = Paint.Align.CENTER
-        c.drawText(label, r.centerX(), r.centerY() + 4f * scale, p)
+
+        c.drawText(
+            label,
+            r.centerX(),
+            r.centerY() + 4f * scale,
+            p
+        )
+
         p.textAlign = Paint.Align.LEFT
     }
 
@@ -220,35 +453,59 @@ private class GameView(context: Context) : View(context) {
         val s = scale
         val w = width.toFloat()
         val h = height.toFloat()
+
         val tx = e.x
         val ty = e.y
 
-        if (e.action == MotionEvent.ACTION_DOWN ||
-            e.action == MotionEvent.ACTION_MOVE) {
-            left = tx < 90f * s && ty > h - 100f * s
-            right = tx in (90f*s)..(180f*s) && ty > h - 100f*s
+        if (won || lost) {
+            if (
+                e.action == MotionEvent.ACTION_DOWN ||
+                e.action == MotionEvent.ACTION_UP
+            ) {
+                resetGame()
+                invalidate()
+            }
+            return true
+        }
 
-            if (e.action == MotionEvent.ACTION_DOWN) {
-                if (tx > w - 185f*s && ty < 95f*s) {
-                    light = !light
-                } else if (tx > w - 195f*s &&
-                    tx < w - 110f*s && ty > h - 100f*s) {
-                    if (grounded) {
-                        velocity = -13f
-                        grounded = false
+        when (e.actionMasked) {
+            MotionEvent.ACTION_DOWN,
+            MotionEvent.ACTION_MOVE -> {
+                left = tx in (15f*s)..(85f*s) &&
+                    ty > h - 100f*s
+
+                right = tx in (95f*s)..(165f*s) &&
+                    ty > h - 100f*s
+
+                if (e.actionMasked == MotionEvent.ACTION_DOWN) {
+                    if (tx > w - 185f*s && ty < 95f*s) {
+                        light = !light
+                    } else if (
+                        tx > w - 195f*s &&
+                        tx < w - 110f*s &&
+                        ty > h - 100f*s
+                    ) {
+                        if (grounded) {
+                            velocity = -13f
+                            grounded = false
+                        }
+                    } else if (
+                        tx >= w - 110f*s &&
+                        ty > h - 100f*s
+                    ) {
+                        attack = true
                     }
-                } else if (tx >= w - 110f*s && ty > h - 100f*s) {
-                    attack = true
                 }
+            }
+
+            MotionEvent.ACTION_UP,
+            MotionEvent.ACTION_CANCEL -> {
+                left = false
+                right = false
             }
         }
 
-        if (e.action == MotionEvent.ACTION_UP ||
-            e.action == MotionEvent.ACTION_CANCEL) {
-            left = false
-            right = false
-        }
-
+        invalidate()
         return true
     }
 }
