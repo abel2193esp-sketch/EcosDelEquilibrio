@@ -818,8 +818,7 @@ private class GameView(context: Context) : View(context) {
             }
         }
 
-        invalidate()
+                invalidate()
         return true
     }
-    
-
+}
