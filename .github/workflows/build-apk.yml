@@ -29,13 +29,36 @@ jobs:
         with:
           gradle-version: '8.9'
 
+      - name: Comprobar archivos del proyecto
+        run: |
+          echo "Contenido del manifiesto:"
+          cat -n app/src/main/AndroidManifest.xml
+          echo ""
+          echo "Archivos principales:"
+          find app/src/main -maxdepth 6 -type f
+
+      - name: Validar AndroidManifest.xml
+        run: |
+          python3 - <<'PY'
+          import xml.etree.ElementTree as ET
+          ruta = "app/src/main/AndroidManifest.xml"
+          try:
+              ET.parse(ruta)
+              print("XML correcto")
+          except ET.ParseError as e:
+              print(f"ERROR XML: {e}")
+              raise
+          PY
+
       - name: Compilar APK
-        run: gradle --no-daemon assembleDebug
+        run: gradle --no-daemon assembleDebug --stacktrace
 
       - name: Guardar APK
+        if: success()
         uses: actions/upload-artifact@v4
         with:
           name: EcosDelEquilibrio-APK
           path: app/build/outputs/apk/debug/app-debug.apk
           if-no-files-found: error
           retention-days: 14
+          
