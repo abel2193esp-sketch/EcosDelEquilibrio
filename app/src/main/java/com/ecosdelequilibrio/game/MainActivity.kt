@@ -756,4 +756,4 @@ private class GameView(context: Context) : View(context) {
                 joystickYValue = 0f
 
                 jumpPointerId = -1
-                if (id == attackPointerId) attackPointerId = -1
+                attackPointerId = -1
