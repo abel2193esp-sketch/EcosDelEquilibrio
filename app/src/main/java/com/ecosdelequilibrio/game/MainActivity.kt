@@ -5,12 +5,12 @@ import android.app.Activity
 import android.os.Bundle
 import android.view.MotionEvent
 import android.view.View
-import android.graphics.Canvas
-import android.graphics.Paint
-import android.graphics.Color
-import android.graphics.RectF
-import android.graphics.Path
 import android.content.Context
+import android.graphics.Canvas
+import android.graphics.Color
+import android.graphics.Paint
+import android.graphics.Path
+import android.graphics.RectF
 import kotlin.math.abs
 import kotlin.math.max
 import kotlin.math.min
@@ -32,26 +32,26 @@ class MainActivity : Activity() {
 
 private class GameView(context: Context) : View(context) {
 
-    private val p = Paint(Paint.ANTI_ALIAS_FLAG)
+    private val paint = Paint(Paint.ANTI_ALIAS_FLAG)
 
-    // Jugador y mundo.
-    private var x = 120f
+    private var playerX = 120f
     private var jumpY = 0f
-    private var velocity = 0f
-    private var world = 0f
+    private var velocityY = 0f
+    private var worldX = 0f
     private var facing = 1f
 
-    private var health = 5
+    private var playerHealth = 5
     private var bossHealth = 10
     private var bossX = 700f
 
-    private var light = true
+    private var lightMode = true
     private var grounded = true
     private var crouching = false
     private var jumpCount = 0
 
     private var won = false
     private var lost = false
+
     private var invulnerability = 0
     private var bossAttackTimer = 0
     private var attackFlash = 0
@@ -60,10 +60,10 @@ private class GameView(context: Context) : View(context) {
 
     // Joystick analógico de 360 grados.
     private var joystickPointerId = -1
-    private var joystickXValue = 0f
-    private var joystickYValue = 0f
+    private var joystickDX = 0f
+    private var joystickDY = 0f
 
-    // Identificadores de cada dedo.
+    // Un identificador independiente por botón.
     private var jumpPointerId = -1
     private var attackPointerId = -1
     private var formPointerId = -1
@@ -75,11 +75,14 @@ private class GameView(context: Context) : View(context) {
     private val ground: Float
         get() = height * 0.78f
 
-    private fun platformX(i: Int) = 220f + i * 210f
+    private fun platformX(index: Int): Float {
+        return 220f + index * 210f
+    }
 
-    private fun overlapsPlatform(i: Int): Boolean {
-        val start = platformX(i)
-        return x + 15f > start && x - 15f < start + 100f
+    private fun overlapsPlatform(index: Int): Boolean {
+        val start = platformX(index)
+        return playerX + 15f > start &&
+            playerX - 15f < start + 100f
     }
 
     private fun standingOnPlatform(): Boolean {
@@ -94,31 +97,30 @@ private class GameView(context: Context) : View(context) {
 
     override fun onDraw(canvas: Canvas) {
         super.onDraw(canvas)
-
         updateGame()
         drawGame(canvas)
-
         postInvalidateDelayed(16)
     }
 
     private fun resetGame() {
-        x = 120f
+        playerX = 120f
         jumpY = 0f
-        velocity = 0f
-        world = 0f
+        velocityY = 0f
+        worldX = 0f
         facing = 1f
 
-        health = 5
+        playerHealth = 5
         bossHealth = 10
         bossX = 700f
 
-        light = true
+        lightMode = true
         grounded = true
         crouching = false
         jumpCount = 0
 
         won = false
         lost = false
+
         invulnerability = 0
         bossAttackTimer = 0
         attackFlash = 0
@@ -126,8 +128,8 @@ private class GameView(context: Context) : View(context) {
         projectileFlash = 0
 
         joystickPointerId = -1
-        joystickXValue = 0f
-        joystickYValue = 0f
+        joystickDX = 0f
+        joystickDY = 0f
 
         jumpPointerId = -1
         attackPointerId = -1
@@ -139,7 +141,7 @@ private class GameView(context: Context) : View(context) {
         if (won || lost) return
 
         if (jumpCount < 2) {
-            velocity = -13f
+            velocityY = -13f
             grounded = false
             jumpCount++
             crouching = false
@@ -151,11 +153,10 @@ private class GameView(context: Context) : View(context) {
 
         attackFlash = 9
 
-        val distance = bossX - x
+        val distance = bossX - playerX
         val facingBoss = distance * facing > 0f
 
-        if (
-            bossHealth > 0 &&
+        if (bossHealth > 0 &&
             abs(distance) < 115f &&
             facingBoss
         ) {
@@ -168,18 +169,17 @@ private class GameView(context: Context) : View(context) {
         }
     }
 
-    // Habilidad contextual: luz = proyectil, oscuridad = escudo.
     private fun useSkill() {
         if (won || lost) return
 
-        if (light) {
+        if (lightMode) {
+            // Proyectil de luz.
             projectileFlash = 12
 
-            val distance = bossX - x
+            val distance = bossX - playerX
             val facingBoss = distance * facing > 0f
 
-            if (
-                bossHealth > 0 &&
+            if (bossHealth > 0 &&
                 abs(distance) < 350f &&
                 facingBoss
             ) {
@@ -191,6 +191,7 @@ private class GameView(context: Context) : View(context) {
                 }
             }
         } else {
+            // Escudo temporal de oscuridad.
             shieldTimer = 100
         }
     }
@@ -203,18 +204,18 @@ private class GameView(context: Context) : View(context) {
         if (shieldTimer > 0) shieldTimer--
         if (projectileFlash > 0) projectileFlash--
 
-        // Movimiento horizontal del joystick.
-        val speed = if (crouching) 1.8f else 4f
-        x += joystickXValue * speed
+        // Movimiento en horizontal.
+        val movementSpeed = if (crouching) 1.8f else 4f
 
-        if (joystickXValue < -0.15f) facing = -1f
-        if (joystickXValue > 0.15f) facing = 1f
+        playerX += joystickDX * movementSpeed
+        playerX = playerX.coerceIn(20f, 1800f)
 
-        x = x.coerceIn(20f, 1800f)
+        if (joystickDX < -0.15f) facing = -1f
+        if (joystickDX > 0.15f) facing = 1f
 
-        crouching = grounded && joystickYValue > 0.55f
+        crouching = grounded && joystickDY > 0.65f
 
-        // Si abandonamos una plataforma, empezamos a caer.
+        // Caer cuando se abandona una plataforma.
         if (grounded && jumpY < 0f && !standingOnPlatform()) {
             grounded = false
             jumpCount = 1
@@ -223,21 +224,19 @@ private class GameView(context: Context) : View(context) {
         val previousY = jumpY
 
         if (!grounded) {
-            velocity += 0.58f
-            jumpY += velocity
+            velocityY += 0.58f
+            jumpY += velocityY
 
-            // Aterrizaje sobre plataformas.
-            if (velocity > 0f) {
+            if (velocityY > 0f) {
                 for (i in 0..7) {
                     val platformTop = -100f
 
-                    if (
-                        previousY <= platformTop &&
+                    if (previousY <= platformTop &&
                         jumpY >= platformTop &&
                         overlapsPlatform(i)
                     ) {
                         jumpY = platformTop
-                        velocity = 0f
+                        velocityY = 0f
                         grounded = true
                         jumpCount = 0
                         break
@@ -245,30 +244,31 @@ private class GameView(context: Context) : View(context) {
                 }
             }
 
-            // Aterrizaje en el suelo.
             if (jumpY >= 0f) {
                 jumpY = 0f
-                velocity = 0f
+                velocityY = 0f
                 grounded = true
                 jumpCount = 0
             }
         }
 
-        world = (x - 300f).coerceIn(0f, 900f)
+        worldX = (playerX - 300f).coerceIn(0f, 900f)
 
-        // El Guardián ataca cuando estás cerca.
-        if (bossHealth > 0 && abs(x - bossX) < 95f) {
+        // Ataque del Guardián.
+        if (bossHealth > 0 &&
+            abs(playerX - bossX) < 95f
+        ) {
             bossAttackTimer++
 
             if (bossAttackTimer >= 75) {
                 bossAttackTimer = 0
 
                 if (invulnerability == 0 && shieldTimer == 0) {
-                    health--
+                    playerHealth--
                     invulnerability = 65
 
-                    if (health <= 0) {
-                        health = 0
+                    if (playerHealth <= 0) {
+                        playerHealth = 0
                         lost = true
                     }
                 }
@@ -278,33 +278,33 @@ private class GameView(context: Context) : View(context) {
         }
     }
 
-    private fun drawGame(c: Canvas) {
+    private fun drawGame(canvas: Canvas) {
         val w = width.toFloat()
         val h = height.toFloat()
         val s = scale
 
-        c.drawColor(
-            if (light) Color.rgb(17, 27, 53)
+        canvas.drawColor(
+            if (lightMode) Color.rgb(17, 27, 53)
             else Color.rgb(43, 17, 53)
         )
 
         // Estrellas.
-        p.color = Color.rgb(190, 210, 255)
+        paint.color = Color.rgb(190, 210, 255)
 
         for (i in 0..35) {
-            val raw = (i * 137f - world * 0.12f) % (w + 30f)
-            val sx = if (raw < 0f) raw + w + 30f else raw
-            val sy = i * 47f % (h * 0.60f)
+            val raw = (i * 137f - worldX * 0.12f) % (w + 30f)
+            val starX = if (raw < 0f) raw + w + 30f else raw
+            val starY = i * 47f % (h * 0.60f)
 
-            c.drawCircle(sx, sy, 1.5f * s, p)
+            canvas.drawCircle(starX, starY, 1.5f * s, paint)
         }
 
         // Montañas.
-        p.color = Color.rgb(42, 51, 83)
+        paint.color = Color.rgb(42, 51, 83)
 
         for (i in 0..9) {
             val bx = i * 170f * s -
-                (world * s * 0.2f % (170f * s))
+                (worldX * s * 0.2f % (170f * s))
 
             val path = Path()
             path.moveTo(bx, ground - 20f * s)
@@ -312,41 +312,41 @@ private class GameView(context: Context) : View(context) {
             path.lineTo(bx + 170f * s, ground - 20f * s)
             path.close()
 
-            c.drawPath(path, p)
+            canvas.drawPath(path, paint)
         }
 
         // Suelo.
-        p.color = Color.rgb(43, 61, 67)
-        c.drawRect(0f, ground, w, h, p)
+        paint.color = Color.rgb(43, 61, 67)
+        canvas.drawRect(0f, ground, w, h, paint)
 
-        p.color = Color.rgb(93, 200, 165)
-        c.drawRect(0f, ground, w, ground + 6f * s, p)
+        paint.color = Color.rgb(93, 200, 165)
+        canvas.drawRect(0f, ground, w, ground + 6f * s, paint)
 
         // Plataformas.
         for (i in 0..7) {
-            val px = (platformX(i) - world) * s
+            val px = (platformX(i) - worldX) * s
             val py = ground - 100f * s
 
             if (px > -130f * s && px < w) {
-                p.color = Color.rgb(80, 105, 117)
+                paint.color = Color.rgb(80, 105, 117)
 
-                c.drawRoundRect(
+                canvas.drawRoundRect(
                     px, py, px + 100f * s, py + 15f * s,
-                    3f * s, 3f * s, p
+                    3f * s, 3f * s, paint
                 )
 
-                p.color = Color.rgb(93, 200, 165)
-                c.drawRect(
-                    px, py, px + 100f * s, py + 3f * s, p
+                paint.color = Color.rgb(93, 200, 165)
+                canvas.drawRect(
+                    px, py, px + 100f * s, py + 3f * s, paint
                 )
             }
         }
 
         // Cristales.
-        p.color = if (light) Color.CYAN else Color.MAGENTA
+        paint.color = if (lightMode) Color.CYAN else Color.MAGENTA
 
         for (i in 0..9) {
-            val cx = (100f + i * 190f - world) * s
+            val cx = (100f + i * 190f - worldX) * s
 
             if (cx in 0f..w) {
                 val cy = ground - 35f * s
@@ -358,16 +358,16 @@ private class GameView(context: Context) : View(context) {
                 crystal.lineTo(cx - 5f * s, cy)
                 crystal.close()
 
-                c.drawPath(crystal, p)
+                canvas.drawPath(crystal, paint)
             }
         }
 
-        // Jugador.
-        val px = (x - world) * s
+        // Personaje.
+        val px = (playerX - worldX) * s
         val py = ground + jumpY * s
 
         if (invulnerability % 8 < 5 || invulnerability == 0) {
-            p.color = if (light) {
+            paint.color = if (lightMode) {
                 Color.rgb(91, 211, 255)
             } else {
                 Color.rgb(212, 111, 255)
@@ -375,234 +375,174 @@ private class GameView(context: Context) : View(context) {
 
             val bodyHeight = if (crouching) 30f else 48f
 
-            c.drawRoundRect(
+            canvas.drawRoundRect(
                 px - 15f * s,
                 py - bodyHeight * s,
                 px + 15f * s,
                 py,
-                7f * s, 7f * s, p
+                7f * s, 7f * s, paint
             )
 
-            p.color = Color.WHITE
-            c.drawCircle(
+            paint.color = Color.WHITE
+            canvas.drawCircle(
                 px + facing * 6f * s,
                 py - bodyHeight * 0.7f * s,
-                3f * s, p
+                3f * s, paint
             )
 
-            // Golpe de espada.
+            // Espada.
             if (attackFlash > 0) {
-                p.color = Color.rgb(255, 245, 170)
-
+                paint.color = Color.rgb(255, 245, 170)
                 val swordX = px + facing * 32f * s
 
-                c.drawRoundRect(
+                canvas.drawRoundRect(
                     min(px, swordX), py - 35f * s,
                     max(px, swordX) + 5f * s, py - 29f * s,
-                    2f * s, 2f * s, p
+                    2f * s, 2f * s, paint
                 )
             }
 
-            // Efecto del proyectil de luz.
-            if (projectileFlash > 0 && light) {
-                p.color = Color.CYAN
+            // Proyectil.
+            if (projectileFlash > 0 && lightMode) {
+                paint.color = Color.CYAN
 
-                c.drawCircle(
+                canvas.drawCircle(
                     px + facing * (45f + (12 - projectileFlash) * 12f) * s,
                     py - 30f * s,
-                    8f * s, p
+                    8f * s, paint
                 )
             }
 
-            // Escudo de oscuridad.
-            if (shieldTimer > 0 && !light) {
-                p.color = Color.argb(170, 190, 70, 255)
-                c.drawCircle(px, py - 25f * s, 38f * s, p)
-
-                p.color = Color.WHITE
-                c.drawCircle(px, py - 25f * s, 40f * s, p)
+            // Escudo.
+            if (shieldTimer > 0 && !lightMode) {
+                paint.color = Color.argb(170, 190, 70, 255)
+                canvas.drawCircle(px, py - 25f * s, 38f * s, paint)
             }
         }
 
         // Guardián.
         if (bossHealth > 0) {
-            val bx = (bossX - world) * s
+            val bx = (bossX - worldX) * s
 
-            p.color = Color.rgb(111, 55, 132)
+            paint.color = Color.rgb(111, 55, 132)
 
-            c.drawRoundRect(
+            canvas.drawRoundRect(
                 bx - 32f * s, ground - 90f * s,
                 bx + 32f * s, ground,
-                14f * s, 14f * s, p
+                14f * s, 14f * s, paint
             )
 
-            p.color = Color.rgb(255, 74, 130)
-            c.drawCircle(bx - 10f * s, ground - 65f * s, 4f * s, p)
-            c.drawCircle(bx + 10f * s, ground - 65f * s, 4f * s, p)
+            paint.color = Color.rgb(255, 74, 130)
+            canvas.drawCircle(bx - 10f * s, ground - 65f * s, 4f * s, paint)
+            canvas.drawCircle(bx + 10f * s, ground - 65f * s, 4f * s, paint)
 
-            // Barra de vida del jefe.
             val barLeft = w - 190f * s
             val barTop = 20f * s
             val barWidth = 170f * s
 
-            p.color = Color.DKGRAY
-            c.drawRoundRect(
+            paint.color = Color.DKGRAY
+            canvas.drawRoundRect(
                 barLeft, barTop, barLeft + barWidth,
-                barTop + 13f * s, 3f * s, 3f * s, p
+                barTop + 13f * s, 3f * s, 3f * s, paint
             )
 
-            p.color = Color.RED
-            c.drawRoundRect(
+            paint.color = Color.RED
+            canvas.drawRoundRect(
                 barLeft, barTop,
                 barLeft + barWidth * bossHealth / 10f,
-                barTop + 13f * s, 3f * s, 3f * s, p
+                barTop + 13f * s, 3f * s, 3f * s, paint
             )
         }
 
-        // Información.
-        p.color = Color.WHITE
-        p.textSize = 16f * s
-        c.drawText("ECOS DEL EQUILIBRIO", 16f * s, 25f * s, p)
-        c.drawText("VIDA: $health / 5", 16f * s, 48f * s, p)
+        // HUD.
+        paint.color = Color.WHITE
+        paint.textSize = 16f * s
+        canvas.drawText("ECOS DEL EQUILIBRIO", 16f * s, 25f * s, paint)
+        canvas.drawText("VIDA: $playerHealth / 5", 16f * s, 48f * s, paint)
 
-        c.drawText(
-            if (light) "FORMA: LUZ" else "FORMA: OSCURIDAD",
-            16f * s, 70f * s, p
+        canvas.drawText(
+            if (lightMode) "FORMA: LUZ" else "FORMA: OSCURIDAD",
+            16f * s, 70f * s, paint
         )
 
-        // Joystick de 360 grados.
+        // Joystick.
         val joyX = 90f * s
         val joyY = h - 60f * s
-        val joyRadius = 48f * s
 
-        p.color = Color.argb(155, 22, 36, 55)
-        c.drawCircle(joyX, joyY, joyRadius, p)
+        paint.color = Color.argb(155, 22, 36, 55)
+        canvas.drawCircle(joyX, joyY, 48f * s, paint)
 
-        p.color = Color.argb(210, 100, 145, 175)
-        c.drawCircle(
-            joyX + joystickXValue * 30f * s,
-            joyY + joystickYValue * 30f * s,
-            20f * s, p
+        paint.color = Color.argb(210, 100, 145, 175)
+        canvas.drawCircle(
+            joyX + joystickDX * 30f * s,
+            joyY + joystickDY * 30f * s,
+            20f * s, paint
         )
 
-        p.color = Color.WHITE
-        p.textSize = 10f * s
-        p.textAlign = Paint.Align.CENTER
-        c.drawText("MOVER", joyX, joyY + 62f * s, p)
-        p.textAlign = Paint.Align.LEFT
+        paint.color = Color.WHITE
+        paint.textSize = 10f * s
+        paint.textAlign = Paint.Align.CENTER
+        canvas.drawText("MOVER", joyX, joyY + 62f * s, paint)
+        paint.textAlign = Paint.Align.LEFT
 
-        // Cuatro botones juntos a la derecha.
-        val buttonY1 = h - 82f * s
-        val buttonY2 = h - 14f * s
-        val buttonWidth = 72f * s
+        // Botones alineados abajo a la derecha.
+        val top = h - 82f * s
+        val bottom = h - 14f * s
+        val bw = 72f * s
         val gap = 8f * s
-        val rightEdge = w - 12f * s
+        val edge = w - 12f * s
 
-        val skillRect = RectF(
-            rightEdge - buttonWidth,
-            buttonY1,
-            rightEdge,
-            buttonY2
-        )
+        val skill = RectF(edge - bw, top, edge, bottom)
+        val form = RectF(skill.left - gap - bw, top, skill.left - gap, bottom)
+        val attack = RectF(form.left - gap - bw, top, form.left - gap, bottom)
+        val jump = RectF(attack.left - gap - bw, top, attack.left - gap, bottom)
 
-        val formRect = RectF(
-            skillRect.left - gap - buttonWidth,
-            buttonY1,
-            skillRect.left - gap,
-            buttonY2
-        )
+        drawButton(canvas, jump, "SALTO", Color.rgb(60, 180, 230))
+        drawButton(canvas, attack, "ATAQUE", Color.rgb(230, 75, 120))
+        drawButton(canvas, form, if (lightMode) "OSCUR." else "LUZ", Color.rgb(160, 90, 220))
+        drawButton(canvas, skill, if (lightMode) "PROY." else "ESCUDO", Color.rgb(70, 160, 140))
 
-        val attackRect = RectF(
-            formRect.left - gap - buttonWidth,
-            buttonY1,
-            formRect.left - gap,
-            buttonY2
-        )
-
-        val jumpRect = RectF(
-            attackRect.left - gap - buttonWidth,
-            buttonY1,
-            attackRect.left - gap,
-            buttonY2
-        )
-
-        drawButton(c, jumpRect, "SALTO", Color.rgb(60, 180, 230))
-        drawButton(c, attackRect, "ATAQUE", Color.rgb(230, 75, 120))
-        drawButton(
-            c, formRect,
-            if (light) "OSCUR." else "LUZ",
-            Color.rgb(160, 90, 220)
-        )
-        drawButton(
-            c, skillRect,
-            if (light) "PROY." else "ESCUDO",
-            Color.rgb(70, 160, 140)
-        )
-
-        // Pantalla final.
         if (won || lost) {
-            p.color = Color.argb(225, 8, 12, 25)
-            c.drawRect(0f, 0f, w, h, p)
+            paint.color = Color.argb(225, 8, 12, 25)
+            canvas.drawRect(0f, 0f, w, h, paint)
 
-            p.color = if (won) {
-                Color.rgb(100, 255, 190)
-            } else {
-                Color.rgb(255, 100, 120)
-            }
+            paint.color = if (won) Color.rgb(100, 255, 190) else Color.rgb(255, 100, 120)
+            paint.textAlign = Paint.Align.CENTER
+            paint.textSize = 29f * s
 
-            p.textAlign = Paint.Align.CENTER
-            p.textSize = 29f * s
-
-            c.drawText(
+            canvas.drawText(
                 if (won) "¡GUARDIÁN DERROTADO!" else "HAS CAÍDO",
-                w / 2f, h * 0.43f, p
+                w / 2f, h * 0.43f, paint
             )
 
-            p.color = Color.WHITE
-            p.textSize = 17f * s
-            c.drawText(
-                "TOCA PARA VOLVER A JUGAR",
-                w / 2f, h * 0.53f, p
-            )
-
-            p.textAlign = Paint.Align.LEFT
+            paint.color = Color.WHITE
+            paint.textSize = 17f * s
+            canvas.drawText("TOCA PARA VOLVER A JUGAR", w / 2f, h * 0.53f, paint)
+            paint.textAlign = Paint.Align.LEFT
         }
     }
 
-    private fun drawButton(
-        c: Canvas,
-        r: RectF,
-        label: String,
-        color: Int
-    ) {
-        p.color = Color.argb(210, 22, 36, 55)
-        c.drawRoundRect(r, 12f * scale, 12f * scale, p)
+    private fun drawButton(canvas: Canvas, rect: RectF, label: String, color: Int) {
+        paint.color = Color.argb(210, 22, 36, 55)
+        canvas.drawRoundRect(rect, 12f * scale, 12f * scale, paint)
 
-        p.color = color
-        p.style = Paint.Style.STROKE
-        p.strokeWidth = 2f * scale
-        c.drawRoundRect(r, 12f * scale, 12f * scale, p)
-        p.style = Paint.Style.FILL
+        paint.color = color
+        paint.style = Paint.Style.STROKE
+        paint.strokeWidth = 2f * scale
+        canvas.drawRoundRect(rect, 12f * scale, 12f * scale, paint)
+        paint.style = Paint.Style.FILL
 
-        p.color = Color.WHITE
-        p.textSize = 10f * scale
-        p.textAlign = Paint.Align.CENTER
-
-        c.drawText(
-            label,
-            r.centerX(),
-            r.centerY() + 4f * scale,
-            p
-        )
-
-        p.textAlign = Paint.Align.LEFT
+        paint.color = Color.WHITE
+        paint.textSize = 10f * scale
+        paint.textAlign = Paint.Align.CENTER
+        canvas.drawText(label, rect.centerX(), rect.centerY() + 4f * scale, paint)
+        paint.textAlign = Paint.Align.LEFT
     }
 
     private fun updateJoystick(tx: Float, ty: Float) {
-        val s = scale
-        val joyX = 90f * s
-        val joyY = height - 60f * s
-        val radius = 48f * s
+        val radius = 48f * scale
+        val joyX = 90f * scale
+        val joyY = height - 60f * scale
 
         var dx = tx - joyX
         var dy = ty - joyY
@@ -614,11 +554,11 @@ private class GameView(context: Context) : View(context) {
             dy = dy / distance * radius
         }
 
-        joystickXValue = (dx / radius).coerceIn(-1f, 1f)
-        joystickYValue = (dy / radius).coerceIn(-1f, 1f)
+        joystickDX = (dx / radius).coerceIn(-1f, 1f)
+        joystickDY = (dy / radius).coerceIn(-1f, 1f)
     }
 
-    override fun onTouchEvent(e: MotionEvent): Boolean {
+    override fun onTouchEvent(event: MotionEvent): Boolean {
         val s = scale
         val w = width.toFloat()
         val h = height.toFloat()
@@ -627,44 +567,21 @@ private class GameView(context: Context) : View(context) {
         val joyY = h - 60f * s
         val joyRadius = 65f * s
 
-        val buttonY1 = h - 82f * s
-        val buttonY2 = h - 14f * s
-        val buttonWidth = 72f * s
+        val top = h - 82f * s
+        val bottom = h - 14f * s
+        val bw = 72f * s
         val gap = 8f * s
-        val rightEdge = w - 12f * s
+        val edge = w - 12f * s
 
-        val skillRect = RectF(
-            rightEdge - buttonWidth,
-            buttonY1,
-            rightEdge,
-            buttonY2
-        )
-
-        val formRect = RectF(
-            skillRect.left - gap - buttonWidth,
-            buttonY1,
-            skillRect.left - gap,
-            buttonY2
-        )
-
-        val attackRect = RectF(
-            formRect.left - gap - buttonWidth,
-            buttonY1,
-            formRect.left - gap,
-            buttonY2
-        )
-
-        val jumpRect = RectF(
-            attackRect.left - gap - buttonWidth,
-            buttonY1,
-            attackRect.left - gap,
-            buttonY2
-        )
+        val skill = RectF(edge - bw, top, edge, bottom)
+        val form = RectF(skill.left - gap - bw, top, skill.left - gap, bottom)
+        val attack = RectF(form.left - gap - bw, top, form.left - gap, bottom)
+        val jump = RectF(attack.left - gap - bw, top, attack.left - gap, bottom)
 
         fun handleDown(index: Int) {
-            val tx = e.getX(index)
-            val ty = e.getY(index)
-            val id = e.getPointerId(index)
+            val tx = event.getX(index)
+            val ty = event.getY(index)
+            val id = event.getPointerId(index)
 
             if (won || lost) {
                 resetGame()
@@ -674,8 +591,7 @@ private class GameView(context: Context) : View(context) {
             val dx = tx - joyX
             val dy = ty - joyY
 
-            if (
-                joystickPointerId == -1 &&
+            if (joystickPointerId == -1 &&
                 dx * dx + dy * dy <= joyRadius * joyRadius
             ) {
                 joystickPointerId = id
@@ -683,54 +599,53 @@ private class GameView(context: Context) : View(context) {
                 return
             }
 
-            if (jumpRect.contains(tx, ty)) {
+            if (jump.contains(tx, ty)) {
                 jumpPointerId = id
                 jump()
                 return
             }
 
-            if (attackRect.contains(tx, ty)) {
+            if (attack.contains(tx, ty)) {
                 attackPointerId = id
                 attack()
                 return
             }
 
-            if (formRect.contains(tx, ty)) {
+            if (form.contains(tx, ty)) {
                 formPointerId = id
-                light = !light
+                lightMode = !lightMode
                 return
             }
 
-            if (skillRect.contains(tx, ty)) {
+            if (skill.contains(tx, ty)) {
                 skillPointerId = id
                 useSkill()
             }
         }
 
-        when (e.actionMasked) {
+        when (event.actionMasked) {
             MotionEvent.ACTION_DOWN,
             MotionEvent.ACTION_POINTER_DOWN -> {
-                handleDown(e.actionIndex)
+                handleDown(event.actionIndex)
             }
 
             MotionEvent.ACTION_MOVE -> {
                 if (joystickPointerId != -1) {
-                    val index = e.findPointerIndex(joystickPointerId)
-
+                    val index = event.findPointerIndex(joystickPointerId)
                     if (index >= 0) {
-                        updateJoystick(e.getX(index), e.getY(index))
+                        updateJoystick(event.getX(index), event.getY(index))
                     }
                 }
             }
 
             MotionEvent.ACTION_POINTER_UP,
             MotionEvent.ACTION_UP -> {
-                val id = e.getPointerId(e.actionIndex)
+                val id = event.getPointerId(event.actionIndex)
 
                 if (id == joystickPointerId) {
                     joystickPointerId = -1
-                    joystickXValue = 0f
-                    joystickYValue = 0f
+                    joystickDX = 0f
+                    joystickDY = 0f
                 }
 
                 if (id == jumpPointerId) jumpPointerId = -1
@@ -738,10 +653,10 @@ private class GameView(context: Context) : View(context) {
                 if (id == formPointerId) formPointerId = -1
                 if (id == skillPointerId) skillPointerId = -1
 
-                if (e.actionMasked == MotionEvent.ACTION_UP) {
+                if (event.actionMasked == MotionEvent.ACTION_UP) {
                     joystickPointerId = -1
-                    joystickXValue = 0f
-                    joystickYValue = 0f
+                    joystickDX = 0f
+                    joystickDY = 0f
 
                     jumpPointerId = -1
                     attackPointerId = -1
@@ -752,8 +667,17 @@ private class GameView(context: Context) : View(context) {
 
             MotionEvent.ACTION_CANCEL -> {
                 joystickPointerId = -1
-                joystickXValue = 0f
-                joystickYValue = 0f
+                joystickDX = 0f
+                joystickDY = 0f
 
                 jumpPointerId = -1
                 attackPointerId = -1
+                formPointerId = -1
+                skillPointerId = -1
+            }
+        }
+
+        invalidate()
+        return true
+    }
+}
