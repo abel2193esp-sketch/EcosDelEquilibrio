@@ -165,7 +165,7 @@ private class GameView(context: Context) : View(context) {
         if (won || lost) return
 
         if (jumpCount < 2) {
-            velocityY = if (jumpCount == 0) -12f else -10f
+            velocityY = if (jumpCount == 0) -09f else -07f
 
             grounded = false
             jumpCount++
