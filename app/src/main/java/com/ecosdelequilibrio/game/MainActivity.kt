@@ -710,10 +710,6 @@ private class GameView(context: Context) : View(context) {
         val w = width.toFloat()
         val h = height.toFloat()
 
-        val joyX = 90f * s
-        val joyY = h - 60f * s
-        val joyRadius = 65f * s
-
         val top = h - 82f * s
         val bottom = h - 14f * s
         val bw = 72f * s
@@ -725,13 +721,13 @@ private class GameView(context: Context) : View(context) {
             skill.left - gap - bw, top,
             skill.left - gap, bottom
         )
-        val attack = RectF(
+        val attackButton = RectF(
             form.left - gap - bw, top,
             form.left - gap, bottom
         )
-        val jump = RectF(
-            attack.left - gap - bw, top,
-            attack.left - gap, bottom
+        val jumpButton = RectF(
+            attackButton.left - gap - bw, top,
+            attackButton.left - gap, bottom
         )
 
         fun handleDown(index: Int) {
@@ -741,11 +737,11 @@ private class GameView(context: Context) : View(context) {
 
             if (won || lost) {
                 resetGame()
+                invalidate()
                 return
             }
 
-      
-            if (id == joystickPointerId ||
+            if (joystickPointerId == id ||
                 (joystickPointerId == -1 && tx < w * 0.38f)
             ) {
                 joystickPointerId = id
@@ -754,24 +750,19 @@ private class GameView(context: Context) : View(context) {
             }
 
             when {
-                jump.contains(tx, ty) -> {
+                jumpButton.contains(tx, ty) -> {
                     jumpPointerId = id
-                    if (jumpCount < 2) {
-                        velocityY = if (jumpCount == 0) -18f else -16f
-                        jumpCount++
-                        grounded = false
-                        supportPlatform = -1
-                    }
+                    jump()
                 }
 
-                attack.contains(tx, ty) -> {
+                attackButton.contains(tx, ty) -> {
                     attackPointerId = id
-                    performAttack()
+                    attack()
                 }
 
                 form.contains(tx, ty) -> {
                     formPointerId = id
-                    lightForm = !lightForm
+                    lightMode = !lightMode
                 }
 
                 skill.contains(tx, ty) -> {
@@ -790,8 +781,12 @@ private class GameView(context: Context) : View(context) {
             MotionEvent.ACTION_MOVE -> {
                 for (i in 0 until event.pointerCount) {
                     val id = event.getPointerId(i)
+
                     if (id == joystickPointerId) {
-                        updateJoystick(event.getX(i), event.getY(i))
+                        updateJoystick(
+                            event.getX(i),
+                            event.getY(i)
+                        )
                     }
                 }
             }
@@ -826,5 +821,5 @@ private class GameView(context: Context) : View(context) {
         invalidate()
         return true
     }
-}
+    
 
