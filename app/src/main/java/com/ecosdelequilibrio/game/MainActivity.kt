@@ -745,3 +745,86 @@ private class GameView(context: Context) : View(context) {
             }
 
       
+            if (id == joystickPointerId ||
+                (joystickPointerId == -1 && tx < w * 0.38f)
+            ) {
+                joystickPointerId = id
+                updateJoystick(tx, ty)
+                return
+            }
+
+            when {
+                jump.contains(tx, ty) -> {
+                    jumpPointerId = id
+                    if (jumpCount < 2) {
+                        velocityY = if (jumpCount == 0) -18f else -16f
+                        jumpCount++
+                        grounded = false
+                        supportPlatform = -1
+                    }
+                }
+
+                attack.contains(tx, ty) -> {
+                    attackPointerId = id
+                    performAttack()
+                }
+
+                form.contains(tx, ty) -> {
+                    formPointerId = id
+                    lightForm = !lightForm
+                }
+
+                skill.contains(tx, ty) -> {
+                    skillPointerId = id
+                    useSkill()
+                }
+            }
+        }
+
+        when (event.actionMasked) {
+            MotionEvent.ACTION_DOWN,
+            MotionEvent.ACTION_POINTER_DOWN -> {
+                handleDown(event.actionIndex)
+            }
+
+            MotionEvent.ACTION_MOVE -> {
+                for (i in 0 until event.pointerCount) {
+                    val id = event.getPointerId(i)
+                    if (id == joystickPointerId) {
+                        updateJoystick(event.getX(i), event.getY(i))
+                    }
+                }
+            }
+
+            MotionEvent.ACTION_UP,
+            MotionEvent.ACTION_POINTER_UP -> {
+                val id = event.getPointerId(event.actionIndex)
+
+                if (id == joystickPointerId) {
+                    joystickPointerId = -1
+                    joystickDX = 0f
+                    joystickDY = 0f
+                }
+
+                if (id == jumpPointerId) jumpPointerId = -1
+                if (id == attackPointerId) attackPointerId = -1
+                if (id == formPointerId) formPointerId = -1
+                if (id == skillPointerId) skillPointerId = -1
+            }
+
+            MotionEvent.ACTION_CANCEL -> {
+                joystickPointerId = -1
+                joystickDX = 0f
+                joystickDY = 0f
+                jumpPointerId = -1
+                attackPointerId = -1
+                formPointerId = -1
+                skillPointerId = -1
+            }
+        }
+
+        invalidate()
+        return true
+    }
+}
+
