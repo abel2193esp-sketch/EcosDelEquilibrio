@@ -716,10 +716,62 @@ private class GameView(context: Context) : View(context) {
             }
         }
 
+        
         when (event.actionMasked) {
             MotionEvent.ACTION_DOWN,
             MotionEvent.ACTION_POINTER_DOWN -> {
                 handleDown(event.actionIndex)
             }
 
-            MotionEvent.AC
+            MotionEvent.ACTION_MOVE -> {
+                if (joystickPointerId != -1) {
+                    val index = event.findPointerIndex(joystickPointerId)
+                    if (index >= 0) {
+                        updateJoystick(event.getX(index), event.getY(index))
+                    }
+                }
+            }
+
+            MotionEvent.ACTION_POINTER_UP,
+            MotionEvent.ACTION_UP -> {
+                val id = event.getPointerId(event.actionIndex)
+
+                if (id == joystickPointerId) {
+                    joystickPointerId = -1
+                    joystickDX = 0f
+                    joystickDY = 0f
+                }
+
+                if (id == jumpPointerId) jumpPointerId = -1
+                if (id == attackPointerId) attackPointerId = -1
+                if (id == formPointerId) formPointerId = -1
+                if (id == skillPointerId) skillPointerId = -1
+
+                if (event.actionMasked == MotionEvent.ACTION_UP) {
+                    joystickPointerId = -1
+                    joystickDX = 0f
+                    joystickDY = 0f
+
+                    jumpPointerId = -1
+                    attackPointerId = -1
+                    formPointerId = -1
+                    skillPointerId = -1
+                }
+            }
+
+            MotionEvent.ACTION_CANCEL -> {
+                joystickPointerId = -1
+                joystickDX = 0f
+                joystickDY = 0f
+
+                jumpPointerId = -1
+                attackPointerId = -1
+                formPointerId = -1
+                skillPointerId = -1
+            }
+        }
+
+        invalidate()
+        return true
+    }
+}
