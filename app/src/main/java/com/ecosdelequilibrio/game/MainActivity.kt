@@ -312,18 +312,19 @@ private val regionNames = arrayOf(
 
         
         
+        
         // Recoger pergaminos de mapas.
         for (i in mapPositions.indices) {
             if (i in mapsFound) continue
 
             val mapX = mapPositions[i]
-            val mapY = height - 130f * scale
 
-            val playerNearMap =
+            // El pergamino se recoge al llegar a su posición
+            // mientras el personaje está cerca del suelo.
+            if (
                 kotlin.math.abs(playerX - mapX) < 35f &&
-                kotlin.math.abs((height - jumpY) - mapY) < 55f
-
-            if (playerNearMap) {
+                kotlin.math.abs(jumpY) < 45f
+            ) {
                 mapsFound.add(i)
 
                 mapPrefs.edit()
@@ -331,6 +332,7 @@ private val regionNames = arrayOf(
                     .apply()
             }
         }
+
 
 
 
