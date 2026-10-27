@@ -454,7 +454,7 @@ private val regionNames = arrayOf(
         for (i in mapPositions.indices) {
             if (i in mapsFound) continue
 
-            val mx = (mapPositions[i] - cameraX) * s
+            val mx = mapPositions[i] * s
             val my = ground - 25f * s
 
 
