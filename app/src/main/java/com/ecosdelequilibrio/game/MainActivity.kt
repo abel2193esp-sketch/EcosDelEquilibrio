@@ -430,6 +430,31 @@ private val regionNames = arrayOf(
             )
         }
 
+        // Pergaminos de mapas regionales.
+        for (i in mapPositions.indices) {
+            if (i in mapsFound) continue
+
+            val mx = mapPositions[i] - cameraX
+            val my = height - 65f * scale
+
+            paint.color = Color.rgb(235, 207, 133)
+            canvas.drawRoundRect(
+                mx - 10f * scale,
+                my - 13f * scale,
+                mx + 10f * scale,
+                my + 13f * scale,
+                4f * scale,
+                4f * scale,
+                paint
+            )
+
+            paint.color = Color.rgb(92, 54, 30)
+            paint.textSize = 12f * scale
+            paint.textAlign = Paint.Align.CENTER
+            canvas.drawText("M", mx, my + 4f * scale, paint)
+            paint.textAlign = Paint.Align.LEFT
+        }
+        
         // Cristales coleccionables.
         for (i in 0..15) {
             if (i in collected) continue
