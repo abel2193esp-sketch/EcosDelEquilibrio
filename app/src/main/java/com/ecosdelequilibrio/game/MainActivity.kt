@@ -921,6 +921,26 @@ if (showMap) {
             val ty = event.getY(index)
             val id = event.getPointerId(index)
 
+            val screenW = width.toFloat()
+            val uiScale = scale
+
+            if (showMap) {
+                showMap = false
+                invalidate()
+                return
+            }
+
+            if (
+                mapsFound.isNotEmpty() &&
+                ty < 45f * uiScale &&
+                tx > screenW * 0.40f &&
+                tx < screenW * 0.60f
+            ) {
+                showMap = true
+                invalidate()
+                return
+            }
+            
             if (won || lost) {
                 resetGame()
                 invalidate()
