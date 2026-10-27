@@ -455,13 +455,14 @@ private val regionNames = arrayOf(
             if (i in mapsFound) continue
 
             val mx = mapPositions[i] * s
-            val my = ground - 25f * s
+val my = ground - 25f * s
 
+// Comprobar la visibilidad teniendo en cuenta la cámara.
+val screenX = (mapPositions[i] - cameraX) * s
 
-            // Dibujar solo si está dentro de la pantalla.
-            if (mx < -30f * scale || mx > width + 30f * scale) {
-                continue
-            }
+if (screenX < -30f * s || screenX > width + 30f * s) {
+    continue
+}
 
             // Aura luminosa.
             paint.color = Color.argb(90, 80, 220, 255)
