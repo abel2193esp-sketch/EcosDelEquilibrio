@@ -452,8 +452,8 @@ private val regionNames = arrayOf(
         for (i in mapPositions.indices) {
             if (i in mapsFound) continue
 
-            val mx = (mapPositions[i] - cameraX) * scale
-            val my = ground - 25f * scale
+            val mx = (mapPositions[i] - cameraX) * s
+            val my = ground - 25f * s
 
 
             // Dibujar solo si está dentro de la pantalla.
