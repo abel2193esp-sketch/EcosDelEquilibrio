@@ -29,6 +29,12 @@ jobs:
         with:
           gradle-version: '8.9'
 
+      - name: Restaurar clave de firma de depuración
+        uses: actions/cache@v4
+        with:
+          path: ~/.android/debug.keystore
+          key: ecos-debug-signing-key-v1
+
       - name: Comprobar archivos del proyecto
         run: |
           echo "Contenido del manifiesto:"
@@ -61,4 +67,3 @@ jobs:
           path: app/build/outputs/apk/debug/app-debug.apk
           if-no-files-found: error
           retention-days: 14
-          
