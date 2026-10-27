@@ -784,6 +784,111 @@ private val regionNames = arrayOf(
         joystickDY = (dy / radius).coerceIn(-1f, 1f)
     }
 
+private fun drawWorldMap(canvas: Canvas) {
+    val w = width.toFloat()
+    val h = height.toFloat()
+    val s = scale
+
+    paint.color = Color.argb(245, 5, 10, 28)
+    canvas.drawRect(0f, 0f, w, h, paint)
+
+    paint.textAlign = Paint.Align.CENTER
+    paint.color = Color.CYAN
+    paint.textSize = 26f * s
+    canvas.drawText(
+        "MAPA DEL EQUILIBRIO",
+        w / 2f,
+        45f * s,
+        paint
+    )
+
+    val startX = w * 0.12f
+    val stepX = w * 0.152f
+    val centerY = h * 0.45f
+
+    for (i in 0 until 5) {
+        if (i in mapsFound && i + 1 in mapsFound) {
+            paint.color = Color.CYAN
+            paint.strokeWidth = 4f * s
+            canvas.drawLine(
+                startX + i * stepX,
+                centerY,
+                startX + (i + 1) * stepX,
+                centerY,
+                paint
+            )
+        }
+    }
+
+    for (i in regionNames.indices) {
+        val x = startX + i * stepX
+
+        val box = RectF(
+            x - 42f * s,
+            centerY - 32f * s,
+            x + 42f * s,
+            centerY + 32f * s
+        )
+
+        paint.color = if (i in mapsFound) {
+            Color.rgb(30, 105, 125)
+        } else {
+            Color.rgb(45, 45, 60)
+        }
+
+        canvas.drawRoundRect(
+            box, 8f * s, 8f * s, paint
+        )
+
+        paint.color = if (i in mapsFound) {
+            Color.CYAN
+        } else {
+            Color.LTGRAY
+        }
+
+        paint.textSize = 22f * s
+        canvas.drawText(
+            if (i in mapsFound) "✓" else "?",
+            x,
+            centerY + 8f * s,
+            paint
+        )
+
+        paint.textSize = 10f * s
+        val label = if (i in mapsFound) {
+            regionNames[i]
+        } else {
+            "Desconocida"
+        }
+
+        canvas.drawText(
+            label,
+            x,
+            centerY + 48f * s,
+            paint
+        )
+    }
+
+    paint.color = Color.WHITE
+    paint.textSize = 16f * s
+    canvas.drawText(
+        "Mapas encontrados: ${mapsFound.size}/6",
+        w / 2f,
+        h * 0.72f,
+        paint
+    )
+
+    paint.textSize = 14f * s
+    canvas.drawText(
+        "Toca la pantalla para volver",
+        w / 2f,
+        h * 0.85f,
+        paint
+    )
+
+    paint.textAlign = Paint.Align.LEFT
+}
+
     override fun onTouchEvent(event: MotionEvent): Boolean {
         val s = scale
         val w = width.toFloat()
