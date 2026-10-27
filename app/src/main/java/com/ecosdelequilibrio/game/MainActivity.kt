@@ -608,6 +608,23 @@ private val regionNames = arrayOf(
             16f * s, 92f * s, paint
         )
 
+        // Botón de mapa: solo aparece tras encontrar un pergamino.
+        if (mapsFound.isNotEmpty()) {
+            val mapButton = RectF(
+                w / 2f - 55f * s,
+                8f * s,
+                w / 2f + 55f * s,
+                40f * s
+            )
+
+            drawButton(
+                canvas,
+                mapButton,
+                "MAPA",
+                Color.rgb(60, 160, 230)
+            )
+        }
+        
         // Barra de vida del jefe.
         if (bossHealth > 0) {
             val bx = w - 190f * s
