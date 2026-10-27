@@ -309,7 +309,20 @@ private val regionNames = arrayOf(
 
         cameraX = (playerX - visibleWorldWidth * 0.38f)
             .coerceIn(0f, worldWidth - visibleWorldWidth)
+// Descubrir mapas regionales.
+for (i in mapPositions.indices) {
+    if (
+        i !in mapsFound &&
+        kotlin.math.abs(playerX - mapPositions[i]) < 35f &&
+        kotlin.math.abs(playerY - ground) < 100f
+    ) {
+        mapsFound.add(i)
 
+        mapPrefs.edit()
+            .putBoolean("map_$i", true)
+            .apply()
+    }
+}
         // Recoger cristales cerca del suelo.
         for (i in 0..15) {
             val crystalX = 100f + i * 185f
