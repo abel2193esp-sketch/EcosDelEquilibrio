@@ -48,7 +48,29 @@ private class GameView(context: Context) : View(context) {
 
     private var crystals = 0
     private val collected = mutableSetOf<Int>()
+private val mapPrefs =
+    context.getSharedPreferences("ecos_mapas", Context.MODE_PRIVATE)
 
+private val mapsFound = mutableSetOf<Int>().apply {
+    for (i in 0..5) {
+        if (mapPrefs.getBoolean("map_$i", false)) add(i)
+    }
+}
+
+private var showMap = false
+
+private val mapPositions = floatArrayOf(
+    350f, 850f, 1350f, 1850f, 2350f, 2750f
+)
+
+private val regionNames = arrayOf(
+    "Ruinas Antiguas",
+    "Caverna Susurrante",
+    "Bosque Celestial",
+    "Montaña Helada",
+    "Profundidades Sombrías",
+    "Templo del Equilibrio"
+)
     private var lightMode = true
     private var grounded = true
     private var crouching = false
