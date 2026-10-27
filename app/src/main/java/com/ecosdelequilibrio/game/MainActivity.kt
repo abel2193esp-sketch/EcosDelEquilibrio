@@ -310,11 +310,15 @@ private val regionNames = arrayOf(
         cameraX = (playerX - visibleWorldWidth * 0.38f)
             .coerceIn(0f, worldWidth - visibleWorldWidth)
 
-        // Descubrir mapas regionales.
+        
+        // Descubrir mapas regionales al tocar sus pergaminos.
         for (i in mapPositions.indices) {
+            if (i in mapsFound) continue
+
+            val mapX = mapPositions[i]
+
             if (
-                i !in mapsFound &&
-                kotlin.math.abs(playerX - mapPositions[i]) < 35f &&
+                kotlin.math.abs(playerX - mapX) < 35f &&
                 kotlin.math.abs(jumpY) < 45f
             ) {
                 mapsFound.add(i)
@@ -324,6 +328,8 @@ private val regionNames = arrayOf(
                     .apply()
             }
         }
+
+
         
         // Recoger cristales cerca del suelo.
         for (i in 0..15) {
@@ -436,7 +442,7 @@ private val regionNames = arrayOf(
             if (i in mapsFound) continue
 
             val mx = mapPositions[i] - cameraX
-            val my = height - 95f * scale
+            val my = height - 100f * scale
 
             // Dibujar solo si está dentro de la pantalla.
             if (mx < -30f * scale || mx > width + 30f * scale) {
