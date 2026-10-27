@@ -430,30 +430,55 @@ private val regionNames = arrayOf(
             )
         }
 
+        
         // Pergaminos de mapas regionales.
         for (i in mapPositions.indices) {
             if (i in mapsFound) continue
 
             val mx = mapPositions[i] - cameraX
-            val my = height - 65f * scale
+            val my = height - 95f * scale
 
-            paint.color = Color.rgb(235, 207, 133)
+            // Dibujar solo si está dentro de la pantalla.
+            if (mx < -30f * scale || mx > width + 30f * scale) {
+                continue
+            }
+
+            // Aura luminosa.
+            paint.color = Color.argb(90, 80, 220, 255)
+            canvas.drawCircle(
+                mx, my, 22f * scale, paint
+            )
+
+            // Pergamino.
+            paint.color = Color.rgb(245, 218, 150)
             canvas.drawRoundRect(
-                mx - 10f * scale,
-                my - 13f * scale,
-                mx + 10f * scale,
-                my + 13f * scale,
-                4f * scale,
-                4f * scale,
+                mx - 11f * scale,
+                my - 15f * scale,
+                mx + 11f * scale,
+                my + 15f * scale,
+                5f * scale,
+                5f * scale,
                 paint
             )
 
-            paint.color = Color.rgb(92, 54, 30)
-            paint.textSize = 12f * scale
+            // Marca central.
+            paint.color = Color.rgb(95, 55, 30)
             paint.textAlign = Paint.Align.CENTER
-            canvas.drawText("M", mx, my + 4f * scale, paint)
+            paint.textSize = 14f * scale
+            canvas.drawText(
+                "M", mx, my + 5f * scale, paint
+            )
+
+            // Indicador sobre el pergamino.
+            paint.color = Color.CYAN
+            paint.textSize = 12f * scale
+            canvas.drawText(
+                "▼", mx, my - 23f * scale, paint
+            )
+
             paint.textAlign = Paint.Align.LEFT
         }
+
         
         // Cristales coleccionables.
         for (i in 0..15) {
