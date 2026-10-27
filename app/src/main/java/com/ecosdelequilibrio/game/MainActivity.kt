@@ -311,16 +311,19 @@ private val regionNames = arrayOf(
             .coerceIn(0f, worldWidth - visibleWorldWidth)
 
         
-        // Descubrir mapas regionales al tocar sus pergaminos.
+        
+        // Recoger pergaminos de mapas.
         for (i in mapPositions.indices) {
             if (i in mapsFound) continue
 
             val mapX = mapPositions[i]
+            val mapY = height - 130f * scale
 
-            if (
+            val playerNearMap =
                 kotlin.math.abs(playerX - mapX) < 35f &&
-                kotlin.math.abs(jumpY) < 45f
-            ) {
+                kotlin.math.abs((height - jumpY) - mapY) < 55f
+
+            if (playerNearMap) {
                 mapsFound.add(i)
 
                 mapPrefs.edit()
@@ -328,6 +331,7 @@ private val regionNames = arrayOf(
                     .apply()
             }
         }
+
 
 
         
