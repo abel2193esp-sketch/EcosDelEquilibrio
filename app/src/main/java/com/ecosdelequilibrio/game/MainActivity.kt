@@ -442,7 +442,7 @@ private val regionNames = arrayOf(
             if (i in mapsFound) continue
 
             val mx = mapPositions[i] - cameraX
-            val my = height - 130f * scale
+            val my = height - 115f * scale
 
             // Dibujar solo si está dentro de la pantalla.
             if (mx < -30f * scale || mx > width + 30f * scale) {
