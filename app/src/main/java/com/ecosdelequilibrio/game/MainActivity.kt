@@ -727,9 +727,16 @@ private val regionNames = arrayOf(
                 w / 2f, h * 0.53f, paint
             )
 
+            
             paint.textAlign = Paint.Align.LEFT
         }
+
+        // Mostrar el mapa por encima del juego.
+        if (showMap) {
+            drawWorldMap(canvas)
+        }
     }
+
 
     private fun drawButton(
         canvas: Canvas,
@@ -887,9 +894,8 @@ private fun drawWorldMap(canvas: Canvas) {
     )
 
     paint.textAlign = Paint.Align.LEFT
-if (showMap) {
-    drawWorldMap(canvas)
-}}
+
+}
 
     override fun onTouchEvent(event: MotionEvent): Boolean {
         val s = scale
