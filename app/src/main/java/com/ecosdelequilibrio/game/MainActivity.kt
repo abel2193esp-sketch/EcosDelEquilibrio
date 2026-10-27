@@ -103,6 +103,8 @@ private val regionNames = arrayOf(
     private val scale: Float
         get() = width / 960f
 
+    private val s = scale
+   
     private val ground: Float
         get() = height * 0.78f
 
