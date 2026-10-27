@@ -887,7 +887,9 @@ private fun drawWorldMap(canvas: Canvas) {
     )
 
     paint.textAlign = Paint.Align.LEFT
-}
+if (showMap) {
+    drawWorldMap(canvas)
+}}
 
     override fun onTouchEvent(event: MotionEvent): Boolean {
         val s = scale
