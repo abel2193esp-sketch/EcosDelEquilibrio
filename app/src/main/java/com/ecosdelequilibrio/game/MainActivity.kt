@@ -60,7 +60,12 @@ private val mapsFound = mutableSetOf<Int>().apply {
 private var showMap = false
 
 private val mapPositions = floatArrayOf(
-    350f, 850f, 1350f, 1850f, 2350f, 2750f
+    400f,
+    900f,
+    1450f,
+    2000f,
+    2500f,
+    3050f
 )
 
 private val regionNames = arrayOf(
