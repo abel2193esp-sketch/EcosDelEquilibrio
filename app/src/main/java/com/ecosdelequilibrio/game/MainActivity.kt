@@ -34,7 +34,7 @@ private class GameView(context: Context) : View(context) {
 
     private val paint = Paint(Paint.ANTI_ALIAS_FLAG)
 
-    private val worldWidth = 3200f
+    private val worldWidth = 12000f
 
     private var playerX = 120f
     private var jumpY = 0f
@@ -108,21 +108,55 @@ private val regionNames = arrayOf(
     private val ground: Float
         get() = height * 0.78f
 
-    // Plataformas: posición horizontal y altura sobre el suelo.
-    private val platforms = arrayOf(
-        floatArrayOf(260f, 70f),
-        floatArrayOf(430f, 110f),
-        floatArrayOf(620f, 65f),
-        floatArrayOf(820f, 130f),
-        floatArrayOf(1050f, 90f),
-        floatArrayOf(1270f, 65f),
-        floatArrayOf(1450f, 115f),
-        floatArrayOf(1660f, 80f),
-        floatArrayOf(1870f, 135f),
-        floatArrayOf(2100f, 95f),
-        floatArrayOf(2310f, 65f),
-        floatArrayOf(2500f, 110f)
-    )
+    // Plataformas del Valle de los Antiguos.
+// Cada elemento contiene: posición horizontal y altura sobre el suelo.
+private val platforms = arrayOf(
+    // 1. Entrada del Valle
+    floatArrayOf(260f, 70f),
+    floatArrayOf(430f, 110f),
+    floatArrayOf(620f, 65f),
+    floatArrayOf(820f, 130f),
+
+    // 2. Cavernas Antiguas
+    floatArrayOf(1150f, 55f),
+    floatArrayOf(1320f, 90f),
+    floatArrayOf(1510f, 45f),
+    floatArrayOf(1700f, 100f),
+
+    // 3. Cascada Central
+    floatArrayOf(2150f, 100f),
+    floatArrayOf(2350f, 155f),
+    floatArrayOf(2550f, 210f),
+    floatArrayOf(2750f, 140f),
+
+    // 4. Ruinas del Templo
+    floatArrayOf(3350f, 85f),
+    floatArrayOf(3550f, 135f),
+    floatArrayOf(3780f, 190f),
+    floatArrayOf(4000f, 115f),
+
+    // 5. Caverna Subterránea
+    floatArrayOf(4650f, 45f),
+    floatArrayOf(4860f, 75f),
+    floatArrayOf(5070f, 35f),
+    floatArrayOf(5280f, 90f),
+
+    // 6. Altos de los Antiguos
+    floatArrayOf(6000f, 150f),
+    floatArrayOf(6220f, 210f),
+    floatArrayOf(6450f, 270f),
+    floatArrayOf(6700f, 190f),
+
+    // Camino hacia las salidas de otras regiones
+    floatArrayOf(7400f, 90f),
+    floatArrayOf(7800f, 130f),
+    floatArrayOf(8250f, 180f),
+    floatArrayOf(8700f, 110f),
+    floatArrayOf(9200f, 160f),
+    floatArrayOf(9700f, 100f),
+    floatArrayOf(10300f, 190f),
+    floatArrayOf(11000f, 130f)
+)
 
     // Alturas expresadas en unidades del mundo.
     private fun platformHeight(index: Int): Float {
@@ -449,6 +483,43 @@ private val regionNames = arrayOf(
             )
         }
 
+        // Decoración del Valle de los Antiguos.
+        // Se dibuja en coordenadas del mundo.
+        val zoneDecorations = floatArrayOf(
+            500f, 1000f, 1900f, 3000f,
+            4300f, 5600f, 7100f, 8500f,
+            10000f, 11400f
+        )
+
+        for (x in zoneDecorations) {
+            val dx = x * s
+            val screenX = (x - cameraX) * s
+
+            if (screenX < -80f * s ||
+                screenX > width + 80f * s) {
+                continue
+            }
+
+            // Columnas antiguas.
+            paint.color = Color.rgb(75, 83, 105)
+            canvas.drawRect(
+                dx - 12f * s,
+                ground - 95f * s,
+                dx + 12f * s,
+                ground,
+                paint
+            )
+
+            paint.color = Color.rgb(130, 190, 170)
+            canvas.drawRect(
+                dx - 18f * s,
+                ground - 100f * s,
+                dx + 18f * s,
+                ground - 92f * s,
+                paint
+            )
+        }
+        
         
         // Pergaminos de mapas regionales.
         for (i in mapPositions.indices) {
