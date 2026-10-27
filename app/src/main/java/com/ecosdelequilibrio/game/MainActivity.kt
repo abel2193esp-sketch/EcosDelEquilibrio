@@ -931,15 +931,15 @@ if (showMap) {
             }
 
             if (
-                mapsFound.isNotEmpty() &&
-                ty < 45f * uiScale &&
-                tx > screenW * 0.40f &&
-                tx < screenW * 0.60f
-            ) {
-                showMap = true
-                invalidate()
-                return
-            }
+    mapsFound.isNotEmpty() &&
+    ty < 60f * uiScale &&
+    tx > screenW / 2f - 90f * uiScale &&
+    tx < screenW / 2f + 90f * uiScale
+) {
+    showMap = true
+    invalidate()
+    return
+}
             
             if (won || lost) {
                 resetGame()
