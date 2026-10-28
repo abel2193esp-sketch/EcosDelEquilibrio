@@ -525,8 +525,8 @@ if (inCave) {
         // Plataformas.
         for (platform in platforms) {
             val px = platform[0] * s
-            val py = ground - platform[1] * s
-
+            val platformBase = if (inCave) caveGround else ground
+            val py = platformBase - platform[1] * s
             paint.color = Color.rgb(80, 105, 117)
             canvas.drawRoundRect(
                 px, py, px + 105f * s, py + 15f * s,
