@@ -315,11 +315,15 @@ private val platforms = arrayOf(
 
         playerX += joystickDX * speed
 
+
 if (inCave) {
-    playerX = playerX.coerceIn(1500f, 1900f)
+   
+    // Las paredes impiden salir de los límites de la cueva.
+    playerX = playerX.coerceIn(1525f, 1875f)
 } else {
     playerX = playerX.coerceIn(20f, worldWidth - 20f)
 }
+
 
         if (joystickDX < -0.15f) facing = -1f
         if (joystickDX > 0.15f) facing = 1f
@@ -371,15 +375,14 @@ if (inCave) {
             
             // Colisión con el techo de la cueva.
             if (inCave) {
-                val caveCeiling = -95f
+                val caveCeiling = -(caveGround / scale - height / scale) + 20f
 
                 if (jumpY < caveCeiling) {
                     jumpY = caveCeiling
                     velocityY = 0f
                 }
             }
-            
-        }
+
             
             
         // Aterrizaje en plataformas al descender.
