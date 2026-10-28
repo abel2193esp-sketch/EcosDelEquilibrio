@@ -631,21 +631,35 @@ if (inCave) {
 
 
         // Plataformas.
-        for (platform in platforms) {
+        val visiblePlatforms = if (inCave) cavePlatforms else platforms
+
+        for (platform in visiblePlatforms) {
             val px = platform[0] * s
             val platformBase = if (inCave) caveGround else ground
             val py = platformBase - platform[1] * s
-            paint.color = Color.rgb(80, 105, 117)
+
+            paint.color = if (inCave) {
+                Color.rgb(83, 67, 101)
+            } else {
+                Color.rgb(80, 105, 117)
+            }
+
             canvas.drawRoundRect(
                 px, py, px + 105f * s, py + 15f * s,
                 4f * s, 4f * s, paint
             )
 
-            paint.color = Color.rgb(93, 200, 165)
+            paint.color = if (inCave) {
+                Color.rgb(180, 126, 218)
+            } else {
+                Color.rgb(93, 200, 165)
+            }
+
             canvas.drawRect(
                 px, py, px + 105f * s, py + 3f * s, paint
             )
         }
+
 
         // Decoración del Valle de los Antiguos.
         // Se dibuja en coordenadas del mundo.
