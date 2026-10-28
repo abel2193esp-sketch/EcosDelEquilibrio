@@ -353,6 +353,18 @@ if (inCave) {
             jumpY += velocityY
 
             
+            // Colisión con el techo de la cueva.
+            if (inCave) {
+                val caveCeiling = -95f
+
+                if (jumpY < caveCeiling) {
+                    jumpY = caveCeiling
+                    velocityY = 0f
+                }
+            }
+            
+
+            
             
         // Aterrizaje en plataformas al descender.
         if (velocityY > 0f) {
