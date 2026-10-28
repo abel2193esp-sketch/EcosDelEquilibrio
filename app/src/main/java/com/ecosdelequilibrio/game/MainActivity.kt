@@ -374,15 +374,17 @@ if (inCave) {
 
             
             
+            
             // Colisión con el techo de la cueva.
-if (inCave) {
-    val caveCeiling = -(caveGround / scale - height / scale) + 20f
+            if (inCave) {
+                val caveCeiling = -70f
 
-    if (jumpY < caveCeiling) {
-        jumpY = caveCeiling
-        velocityY = 0f
-    }
-}
+                if (jumpY < caveCeiling) {
+                    jumpY = caveCeiling
+                    velocityY = 0f
+                }
+            }
+
         } // Cierra if (!grounded). Esta llave es importante.
 
         // Aterrizaje en plataformas al descender.
