@@ -492,39 +492,83 @@ if (grounded && joystickDY > 0.65f) {
         }
 
 
- // Suelo del Valle o de la cueva.
-if (inCave) {
-    // Fondo y paredes de la cueva.
-    paint.color = Color.rgb(24, 27, 39)
-    canvas.drawRect(
-        0f, ground, worldWidth * s, h, paint
-    )
+ 
+        // Suelo del Valle o de la cueva.
+        if (inCave) {
+            // Fondo oscuro de la cueva.
+            paint.color = Color.rgb(24, 27, 39)
+            canvas.drawRect(
+                0f, ground, worldWidth * s, h, paint
+            )
 
-    // Suelo rocoso subterráneo.
-    paint.color = Color.rgb(65, 57, 72)
-    canvas.drawRect(
-        0f, caveGround, worldWidth * s, h, paint
-    )
+            // Suelo rocoso subterráneo.
+            paint.color = Color.rgb(65, 57, 72)
+            canvas.drawRect(
+                0f, caveGround, worldWidth * s, h, paint
+            )
 
-    // Borde del suelo.
-    paint.color = Color.rgb(145, 112, 164)
-    canvas.drawRect(
-        0f, caveGround, worldWidth * s,
-        caveGround + 5f * s, paint
-    )
-} else {
-    // Suelo normal del Valle.
-    paint.color = Color.rgb(43, 61, 67)
-    canvas.drawRect(
-        0f, ground, worldWidth * s, h, paint
-    )
+            // Borde violeta del suelo.
+            paint.color = Color.rgb(145, 112, 164)
+            canvas.drawRect(
+                0f, caveGround, worldWidth * s,
+                caveGround + 5f * s, paint
+            )
+        } else {
+            // Suelo normal del Valle.
+            paint.color = Color.rgb(43, 61, 67)
+            canvas.drawRect(
+                0f, ground, worldWidth * s, h, paint
+            )
 
-    paint.color = Color.rgb(93, 200, 165)
-    canvas.drawRect(
-        0f, ground, worldWidth * s,
-        ground + 6f * s, paint
-    )
-}
+            paint.color = Color.rgb(93, 200, 165)
+            canvas.drawRect(
+                0f, ground, worldWidth * s,
+                ground + 6f * s, paint
+            )
+
+            // Entrada rocosa a la cueva secreta.
+            val caveX = 1620f * s
+            val caveY = ground
+
+            // Rocas exteriores.
+            paint.color = Color.rgb(55, 49, 69)
+            canvas.drawCircle(
+                caveX - 42f * s, caveY - 13f * s,
+                25f * s, paint
+            )
+            canvas.drawCircle(
+                caveX + 40f * s, caveY - 14f * s,
+                27f * s, paint
+            )
+            canvas.drawCircle(
+                caveX, caveY - 24f * s,
+                35f * s, paint
+            )
+
+            // Interior oscuro de la entrada.
+            paint.color = Color.rgb(12, 13, 24)
+            canvas.drawOval(
+                caveX - 30f * s,
+                caveY - 48f * s,
+                caveX + 30f * s,
+                caveY + 4f * s,
+                paint
+            )
+
+            // Brillo violeta en el borde.
+            paint.color = Color.rgb(174, 103, 255)
+            paint.strokeWidth = 3f * s
+            paint.style = Paint.Style.STROKE
+            canvas.drawArc(
+                caveX - 30f * s,
+                caveY - 48f * s,
+                caveX + 30f * s,
+                caveY + 4f * s,
+                180f, 180f, false, paint
+            )
+            paint.style = Paint.Style.FILL
+        }
+
 
 
         // Plataformas.
