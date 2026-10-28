@@ -175,16 +175,20 @@ private val platforms = arrayOf(
     
 
     // Alturas expresadas en unidades del mundo.
+    
     private fun platformHeight(index: Int): Float {
-        return platforms[index][1]
+        val activePlatforms = if (inCave) cavePlatforms else platforms
+        return activePlatforms[index][1]
     }
 
     private fun onPlatform(index: Int): Boolean {
-        val start = platforms[index][0]
+        val activePlatforms = if (inCave) cavePlatforms else platforms
+        val start = activePlatforms[index][0]
 
         return playerX + 15f > start &&
             playerX - 15f < start + 105f
     }
+
 
     private fun currentPlatformStillUnderPlayer(): Boolean {
         if (supportPlatform < 0) return true
@@ -380,7 +384,9 @@ if (inCave) {
             
         // Aterrizaje en plataformas al descender.
         if (velocityY > 0f) {
-            for (i in platforms.indices) {
+            val activePlatforms = if (inCave) cavePlatforms else platforms
+
+            for (i in activePlatforms.indices) {
                 val targetY = -platformHeight(i)
 
                 if (previousY <= targetY &&
@@ -396,7 +402,7 @@ if (inCave) {
                 }
             }
         }
-        }
+
 
         // Aterrizaje en el suelo.
         if (jumpY >= 0f) {
