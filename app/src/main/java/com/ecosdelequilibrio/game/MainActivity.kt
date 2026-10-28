@@ -305,10 +305,12 @@ private val platforms = arrayOf(
 
         crouching = grounded && joystickDY > 0.65f
 
-        // Entrada y salida de la cueva secreta.
+        
+ // Entrada y salida de la cueva secreta.
 if (grounded && joystickDY > 0.65f) {
     if (!inCave && playerX in 1560f..1680f) {
         inCave = true
+        playerX = 1620f
         jumpY = 0f
         velocityY = 0f
         grounded = true
@@ -316,6 +318,7 @@ if (grounded && joystickDY > 0.65f) {
         supportPlatform = -1
     } else if (inCave && playerX < 1500f) {
         inCave = false
+        playerX = 1560f
         jumpY = 0f
         velocityY = 0f
         grounded = true
