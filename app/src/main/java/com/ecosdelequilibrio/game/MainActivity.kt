@@ -311,26 +311,30 @@ if (inCave) {
         crouching = grounded && joystickDY > 0.65f
 
         
- // Entrada y salida de la cueva secreta.
-if (grounded && joystickDY > 0.65f) {
-    if (!inCave && playerX in 1560f..1680f) {
-        inCave = true
-        playerX = 1620f
-        jumpY = 0f
-        velocityY = 0f
-        grounded = true
-        jumpCount = 0
-        supportPlatform = -1
-} else if (inCave && playerX <= 1500f) {
-    inCave = false
-    playerX = 1540f
-    jumpY = 0f
-    velocityY = 0f
-    grounded = true
-    jumpCount = 0
-        supportPlatform = -1
-}
-}
+
+        // Entrada y salida de la cueva secreta.
+        if (grounded && joystickDY > 0.65f) {
+            if (!inCave && playerX in 1560f..1680f) {
+                // Entrar en la cueva.
+                inCave = true
+                playerX = 1620f
+                jumpY = 0f
+                velocityY = 0f
+                grounded = true
+                jumpCount = 0
+                supportPlatform = -1
+            } else if (inCave && playerX <= 1530f) {
+                // Salir de la cueva hacia el Valle.
+                inCave = false
+                playerX = 1540f
+                jumpY = 0f
+                velocityY = 0f
+                grounded = true
+                jumpCount = 0
+                supportPlatform = -1
+            }
+        }
+
 
         // Caer si abandonas una plataforma.
         if (grounded && supportPlatform >= 0 &&
@@ -449,28 +453,52 @@ if (grounded && joystickDY > 0.65f) {
         }
     }
 
+    
     private fun drawGame(canvas: Canvas) {
         val w = width.toFloat()
         val h = height.toFloat()
         val s = scale
 
-        canvas.drawColor(
-            if (lightMode) Color.rgb(17, 27, 53)
-            else Color.rgb(43, 17, 53)
-        )
+        if (inCave) {
+            // Fondo completamente oscuro dentro de la cueva.
+            canvas.drawColor(Color.rgb(12, 13, 24))
 
-        // Estrellas con desplazamiento parallax.
-        paint.color = Color.rgb(190, 210, 255)
+            // Textura rocosa del fondo.
+            paint.color = Color.rgb(29, 27, 43)
 
-        for (i in 0..45) {
-            val raw = (i * 137f - cameraX * s * 0.15f) %
-                (w + 30f)
+            for (i in 0..18) {
+                val x = i * 65f * s
+                val y = (i * 47f % (h * 0.65f)) + 15f * s
 
-            val sx = if (raw < 0f) raw + w + 30f else raw
-            val sy = i * 43f % (h * 0.55f)
+                canvas.drawCircle(
+                    x, y, (12f + (i % 4) * 4f) * s, paint
+                )
+            }
+        } else {
+            // Fondo exterior del Valle.
+            canvas.drawColor(
+                if (lightMode) Color.rgb(17, 27, 53)
+                else Color.rgb(43, 17, 53)
+            )
 
-            canvas.drawCircle(sx, sy, 1.5f * s, paint)
+            // Estrellas con desplazamiento parallax.
+            paint.color = Color.rgb(190, 210, 255)
+
+            for (i in 0..45) {
+                val raw = (i * 137f - cameraX * s * 0.15f) %
+                    (w + 30f)
+
+                val sx = if (raw < 0f) raw + w + 30f else raw
+                val sy = i * 43f % (h * 0.55f)
+
+                canvas.drawCircle(sx, sy, 1.5f * s, paint)
+            }
         }
+
+        // El escenario se mueve con la cámara.
+        canvas.save()
+        canvas.translate(-cameraX * s, 0f)
+
 
         // El escenario se mueve con la cámara.
         canvas.save()
