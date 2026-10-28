@@ -385,11 +385,20 @@ if (inCave) {
 
 
 
+        
         // Cámara lateral que sigue al jugador.
         val visibleWorldWidth = width / scale
 
+        val cameraMin = if (inCave) 1500f else 0f
+        val cameraMax = if (inCave) {
+            1900f - visibleWorldWidth
+        } else {
+            worldWidth - visibleWorldWidth
+        }.coerceAtLeast(cameraMin)
+
         cameraX = (playerX - visibleWorldWidth * 0.38f)
-            .coerceIn(0f, worldWidth - visibleWorldWidth)
+            .coerceIn(cameraMin, cameraMax)
+
 
         
         
