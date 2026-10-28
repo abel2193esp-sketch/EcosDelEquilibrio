@@ -479,16 +479,41 @@ if (grounded && joystickDY > 0.65f) {
             canvas.drawPath(path, paint)
         }
 
-        // Suelo.
-        paint.color = Color.rgb(43, 61, 67)
-        canvas.drawRect(
-            0f, ground, worldWidth * s, h, paint
-        )
 
-        paint.color = Color.rgb(93, 200, 165)
-        canvas.drawRect(
-            0f, ground, worldWidth * s, ground + 6f * s, paint
-        )
+ // Suelo del Valle o de la cueva.
+if (inCave) {
+    // Fondo y paredes de la cueva.
+    paint.color = Color.rgb(24, 27, 39)
+    canvas.drawRect(
+        0f, ground, worldWidth * s, h, paint
+    )
+
+    // Suelo rocoso subterráneo.
+    paint.color = Color.rgb(65, 57, 72)
+    canvas.drawRect(
+        0f, caveGround, worldWidth * s, h, paint
+    )
+
+    // Borde del suelo.
+    paint.color = Color.rgb(145, 112, 164)
+    canvas.drawRect(
+        0f, caveGround, worldWidth * s,
+        caveGround + 5f * s, paint
+    )
+} else {
+    // Suelo normal del Valle.
+    paint.color = Color.rgb(43, 61, 67)
+    canvas.drawRect(
+        0f, ground, worldWidth * s, h, paint
+    )
+
+    paint.color = Color.rgb(93, 200, 165)
+    canvas.drawRect(
+        0f, ground, worldWidth * s,
+        ground + 6f * s, paint
+    )
+}
+
 
         // Plataformas.
         for (platform in platforms) {
