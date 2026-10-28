@@ -379,7 +379,7 @@ if (inCave) {
                 }
             }
             
-
+        }
             
             
         // Aterrizaje en plataformas al descender.
