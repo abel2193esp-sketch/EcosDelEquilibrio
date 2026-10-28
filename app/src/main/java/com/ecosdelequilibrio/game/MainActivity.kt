@@ -298,7 +298,12 @@ private val platforms = arrayOf(
         val speed = if (crouching) 1.8f else 4f
 
         playerX += joystickDX * speed
-        playerX = playerX.coerceIn(20f, worldWidth - 20f)
+
+if (inCave) {
+    playerX = playerX.coerceIn(1500f, 1900f)
+} else {
+    playerX = playerX.coerceIn(20f, worldWidth - 20f)
+}
 
         if (joystickDX < -0.15f) facing = -1f
         if (joystickDX > 0.15f) facing = 1f
