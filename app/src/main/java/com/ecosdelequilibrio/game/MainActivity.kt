@@ -365,20 +365,16 @@ if (grounded && joystickDY > 0.65f) {
                 }
             }
 
-            // Aterrizaje en el suelo del Valle o de la cueva.
-val floorY = if (inCave) {
-    (caveGround - ground) / scale
-} else {
-    0f
-}
+            
+        // Aterrizaje en el suelo.
+        if (jumpY >= 0f) {
+            jumpY = 0f
+            velocityY = 0f
+            grounded = true
+            jumpCount = 0
+            supportPlatform = -1
+        }
 
-if (jumpY >= floorY) {
-    jumpY = floorY
-    velocityY = 0f
-    grounded = true
-    jumpCount = 0
-    supportPlatform = -1
-}
 
         // Cámara lateral que sigue al jugador.
         val visibleWorldWidth = width / scale
