@@ -41,17 +41,17 @@ private class GameView(context: Context) : View(context) {
     private var velocityY = 0f
     private var cameraX = 0f
     private var facing = 1f
-
+    private var inCave = false
     private var health = 5
     private var bossHealth = 12
     private val bossX = 2850f
 
     private var crystals = 0
     private val collected = mutableSetOf<Int>()
-private val mapPrefs =
+    private val mapPrefs =
     context.getSharedPreferences("ecos_mapas", Context.MODE_PRIVATE)
 
-private val mapsFound = mutableSetOf<Int>().apply {
+    private val mapsFound = mutableSetOf<Int>().apply {
     for (i in 0..5) {
         if (mapPrefs.getBoolean("map_$i", false)) add(i)
     }
@@ -192,7 +192,8 @@ private val platforms = arrayOf(
         velocityY = 0f
         cameraX = 0f
         facing = 1f
-
+        inCave = false
+        
         health = 5
         bossHealth = 12
         crystals = 0
@@ -299,6 +300,25 @@ private val platforms = arrayOf(
         if (joystickDX > 0.15f) facing = 1f
 
         crouching = grounded && joystickDY > 0.65f
+
+        // Entrada y salida de la cueva secreta.
+if (grounded && joystickDY > 0.65f) {
+    if (!inCave && playerX in 1560f..1680f) {
+        inCave = true
+        jumpY = 0f
+        velocityY = 0f
+        grounded = true
+        jumpCount = 0
+        supportPlatform = -1
+    } else if (inCave && playerX < 1500f) {
+        inCave = false
+        jumpY = 0f
+        velocityY = 0f
+        grounded = true
+        jumpCount = 0
+        supportPlatform = -1
+    }
+}
 
         // Caer si abandonas una plataforma.
         if (grounded && supportPlatform >= 0 &&
