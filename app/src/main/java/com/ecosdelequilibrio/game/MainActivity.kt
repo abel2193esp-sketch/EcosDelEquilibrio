@@ -108,6 +108,10 @@ private val regionNames = arrayOf(
     private val ground: Float
         get() = height * 0.78f
 
+    // Nivel subterráneo de la cueva.
+private val caveGround: Float
+    get() = height * 0.92f
+
     // Plataformas del Valle de los Antiguos.
 // Cada elemento contiene: posición horizontal y altura sobre el suelo.
 private val platforms = arrayOf(
