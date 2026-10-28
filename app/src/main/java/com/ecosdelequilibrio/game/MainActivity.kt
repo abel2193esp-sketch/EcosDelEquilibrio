@@ -162,6 +162,18 @@ private val platforms = arrayOf(
     floatArrayOf(11000f, 130f)
 )
 
+
+    // Plataformas exclusivas de la cueva.
+    private val cavePlatforms = arrayOf(
+        floatArrayOf(1580f, 65f),
+        floatArrayOf(1710f, 125f),
+        floatArrayOf(1820f, 75f),
+        floatArrayOf(1660f, 195f),
+        floatArrayOf(1790f, 250f),
+        floatArrayOf(1550f, 155f)
+    )
+    
+
     // Alturas expresadas en unidades del mundo.
     private fun platformHeight(index: Int): Float {
         return platforms[index][1]
