@@ -321,17 +321,15 @@ if (grounded && joystickDY > 0.65f) {
         grounded = true
         jumpCount = 0
         supportPlatform = -1
-    } else if (inCave && playerX < 1500f) {
-        inCave = false
-        playerX = 1560f
-        jumpY = 0f
-        velocityY = 0f
-        grounded = true
-        jumpCount = 0
-        supportPlatform = -1
-    }
+} else if (inCave && playerX <= 1500f) {
+    inCave = false
+    playerX = 1540f
+    jumpY = 0f
+    velocityY = 0f
+    grounded = true
+    jumpCount = 0
+    supportPlatform = -1
 }
-
         // Caer si abandonas una plataforma.
         if (grounded && supportPlatform >= 0 &&
             !currentPlatformStillUnderPlayer()
