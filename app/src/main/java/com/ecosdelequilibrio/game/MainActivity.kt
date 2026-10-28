@@ -550,12 +550,12 @@ if (grounded && joystickDY > 0.65f) {
             if (i in mapsFound) continue
 
             val mx = mapPositions[i] * s
-val my = ground - 25f * s
+            val my = ground - 25f * s
 
-// Comprobar la visibilidad teniendo en cuenta la cámara.
-val screenX = (mapPositions[i] - cameraX) * s
+        // Comprobar la visibilidad teniendo en cuenta la cámara.
+            val screenX = (mapPositions[i] - cameraX) * s
 
-if (screenX < -30f * s || screenX > width + 30f * s) {
+                if (screenX < -30f * s || screenX > width + 30f * s) {
     continue
 }
 
@@ -637,9 +637,10 @@ if (screenX < -30f * s || screenX > width + 30f * s) {
 
         paint.style = Paint.Style.FILL
 
-        // Personaje.
-        val px = playerX * s
-        val py = ground + jumpY * s
+      // Personaje.
+      val px = playerX * s
+      val playerGround = if (inCave) caveGround else ground
+      val py = playerGround + jumpY * s
 
         if (invulnerability % 8 < 5 || invulnerability == 0) {
             paint.color = if (lightMode) {
