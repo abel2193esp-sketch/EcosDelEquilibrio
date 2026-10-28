@@ -328,8 +328,10 @@ if (grounded && joystickDY > 0.65f) {
     velocityY = 0f
     grounded = true
     jumpCount = 0
-    supportPlatform = -1
+        supportPlatform = -1
 }
+}
+
         // Caer si abandonas una plataforma.
         if (grounded && supportPlatform >= 0 &&
             !currentPlatformStillUnderPlayer()
@@ -347,27 +349,27 @@ if (grounded && joystickDY > 0.65f) {
             jumpY += velocityY
 
             
-            // Aterrizaje en plataformas al descender.
-            if (velocityY > 0f) {
-                for (i in platforms.indices) {
-                    val targetY = -platformHeight(i)
+            
+        // Aterrizaje en plataformas al descender.
+        if (velocityY > 0f) {
+            for (i in platforms.indices) {
+                val targetY = -platformHeight(i)
 
-                    if (previousY <= targetY &&
-                        jumpY >= targetY &&
-                        onPlatform(i)
-                    ) {
-                        jumpY = targetY
-                        velocityY = 0f
-                        grounded = true
-                        jumpCount = 0
-                        supportPlatform = i
-                        break
-                    }
+                if (previousY <= targetY &&
+                    jumpY >= targetY &&
+                    onPlatform(i)
+                ) {
+                    jumpY = targetY
+                    velocityY = 0f
+                    grounded = true
+                    jumpCount = 0
+                    supportPlatform = i
+                    break
                 }
             }
+        }
+        }
 
-
-            
         // Aterrizaje en el suelo.
         if (jumpY >= 0f) {
             jumpY = 0f
@@ -376,6 +378,7 @@ if (grounded && joystickDY > 0.65f) {
             jumpCount = 0
             supportPlatform = -1
         }
+
 
 
         // Cámara lateral que sigue al jugador.
