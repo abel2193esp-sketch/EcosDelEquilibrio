@@ -504,9 +504,7 @@ if (inCave) {
             }
         }
 
-        // El escenario se mueve con la cámara.
-        canvas.save()
-        canvas.translate(-cameraX * s, 0f)
+        
 
 
         // El escenario se mueve con la cámara.
