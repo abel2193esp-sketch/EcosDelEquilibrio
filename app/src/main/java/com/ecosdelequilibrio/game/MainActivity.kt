@@ -897,6 +897,9 @@ if (inCave) {
             )
         }
 
+        // Aquí termina el dibujo del escenario.
+        canvas.restore()
+        
         // Joystick.
         val joyX = 90f * s
         val joyY = h - 60f * s
