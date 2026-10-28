@@ -346,6 +346,7 @@ if (grounded && joystickDY > 0.65f) {
             velocityY += 0.38f
             jumpY += velocityY
 
+            
             // Aterrizaje en plataformas al descender.
             if (velocityY > 0f) {
                 for (i in platforms.indices) {
@@ -364,6 +365,7 @@ if (grounded && joystickDY > 0.65f) {
                     }
                 }
             }
+
 
             
         // Aterrizaje en el suelo.
