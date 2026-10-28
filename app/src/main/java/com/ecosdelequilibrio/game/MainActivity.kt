@@ -376,16 +376,18 @@ if (inCave) {
             
             
             
+            
             // Colisión con el techo de la cueva.
-            if (inCave) {
+            if (inCave && velocityY < 0f) {
                 val caveRoofY = caveGround - 330f
                 val playerTopY = ground + jumpY - 50f
 
-                if (velocityY < 0f && playerTopY <= caveRoofY) {
+                if (playerTopY <= caveRoofY) {
                     jumpY = caveRoofY - ground + 50f
                     velocityY = 0f
                 }
             }
+
 
 
         } // Cierra if (!grounded). Esta llave es importante.
