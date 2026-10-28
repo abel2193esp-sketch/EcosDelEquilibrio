@@ -635,6 +635,67 @@ if (inCave) {
         }
 
 
+        // Techo y paredes rocosas de la cueva.
+        if (inCave) {
+            val caveLeft = 1500f * s
+            val caveRight = 1900f * s
+            val caveRoof = caveGround - 330f * s
+
+            // Techo de roca.
+            paint.color = Color.rgb(38, 34, 49)
+            canvas.drawRect(
+                caveLeft,
+                0f,
+                caveRight,
+                caveRoof,
+                paint
+            )
+
+            // Borde irregular del techo.
+            paint.color = Color.rgb(91, 70, 111)
+            canvas.drawRect(
+                caveLeft,
+                caveRoof,
+                caveRight,
+                caveRoof + 12f * s,
+                paint
+            )
+
+            // Pared izquierda.
+            paint.color = Color.rgb(49, 43, 62)
+            canvas.drawRect(
+                caveLeft,
+                caveRoof,
+                caveLeft + 22f * s,
+                caveGround,
+                paint
+            )
+
+            // Pared derecha.
+            canvas.drawRect(
+                caveLeft + 378f * s,
+                caveRoof,
+                caveRight,
+                caveGround,
+                paint
+            )
+
+            // Formaciones rocosas del techo.
+            paint.color = Color.rgb(66, 53, 81)
+
+            for (i in 0..7) {
+                val rockX = caveLeft + (25f + i * 49f) * s
+                val rockY = caveRoof + (8f + (i % 3) * 8f) * s
+
+                canvas.drawCircle(
+                    rockX,
+                    rockY,
+                    (12f + (i % 3) * 3f) * s,
+                    paint
+                )
+            }
+        }
+        
 
         // Plataformas.
         val visiblePlatforms = if (inCave) cavePlatforms else platforms
